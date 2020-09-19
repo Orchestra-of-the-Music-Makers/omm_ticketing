@@ -11,10 +11,16 @@ dynamo = boto3.resource("dynamodb").Table("ticketing-table")
 SECRET_KEY = os.environ["SECRET_KEY"]
 
 
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return int(obj)
+    raise TypeError
+
+
 def respond(err, res=None):
     return {
         "statusCode": "400" if err else "200",
-        "body": str(err) if err else json.dumps(res),
+        "body": str(err) if err else json.dumps(res, default=decimal_default),
         "headers": {
             "Content-Type": "application/json",
         },
@@ -55,12 +61,12 @@ def lambda_handler(event, context):
         dynamo.update_item(
             Key={"ticket_id": ticket_id},
             UpdateExpression="set scanned_at = :val",
-            ExpressionAttributeValues={":val": Decimal(time.time())},
+            ExpressionAttributeValues={":val": int(time.time())},
         )
         return respond(None, {"status": "success"})
 
     # POST /<ticket_id>/status
     elif verb == "GET" and action == "status":
-        return respond(None, {"scanned_at": f"{ticket_scanned_at}"})
+        return respond(None, ticket)
 
     return respond(ValueError(f"Unsupported action"))
