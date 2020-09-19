@@ -5,6 +5,8 @@ import Browser.Navigation
 import Http
 import Iso8601
 import Json.Decode
+import Json.Decode.Extra
+import Json.Decode.Pipeline
 import Route
 import Time
 import Url
@@ -40,10 +42,10 @@ type alias GetTicketStatusResponse =
 
 getTicketStatusResponseDecoder : Json.Decode.Decoder GetTicketStatusResponse
 getTicketStatusResponseDecoder =
-    Json.Decode.map3 GetTicketStatusResponse
-        (Json.Decode.field "seat_id" Json.Decode.string)
-        (Json.Decode.field "ticket_id" Json.Decode.string)
-        (Json.Decode.field "scanned_at" (Json.Decode.nullable decodeTimePosix))
+    Json.Decode.succeed GetTicketStatusResponse
+        |> Json.Decode.Pipeline.required "seat_id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "ticket_id" Json.Decode.string
+        |> Json.Decode.Pipeline.optional "scanned_at" decodeTimePosix Nothing
 
 
 emptyGetTicketStatusResponse : GetTicketStatusResponse
@@ -51,10 +53,17 @@ emptyGetTicketStatusResponse =
     { seatID = "", ticketID = "", scannedAt = Nothing }
 
 
-decodeTimePosix : Json.Decode.Decoder Time.Posix
+decodeTimePosix : Json.Decode.Decoder (Maybe Time.Posix)
 decodeTimePosix =
-    Json.Decode.int
-        |> Json.Decode.andThen
-            (\ms ->
-                Json.Decode.succeed <| Time.millisToPosix (ms * 1000)
-            )
+    let
+        maybeIntToMaybePosix : Maybe Int -> Json.Decode.Decoder (Maybe Time.Posix)
+        maybeIntToMaybePosix maybeInt =
+            case maybeInt of
+                Just ms ->
+                    Json.Decode.succeed <| Just (Time.millisToPosix (ms * 1000))
+
+                Nothing ->
+                    Json.Decode.succeed Nothing
+    in
+    Json.Decode.nullable Json.Decode.int
+        |> Json.Decode.andThen maybeIntToMaybePosix

@@ -3,8 +3,8 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (div, h1, p, text)
-import Html.Attributes exposing (title)
+import Html exposing (button, div, h1, h5, p, text)
+import Html.Attributes exposing (class, style, title)
 import Http
 import Iso8601
 import Route
@@ -108,19 +108,36 @@ updateWithURL url model =
 ticketStatusPage : GetTicketStatusResponse -> Html.Html Msg
 ticketStatusPage ticket =
     let
-        scannedAt =
+        card =
             case ticket.scannedAt of
                 Just posixTime ->
-                    Iso8601.fromTime posixTime
+                    div [ class "card border-success mb-3" ]
+                        [ div [ class "card-header" ] [ text "Ticket Status" ]
+                        , div [ class "card-body" ]
+                            [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
+                            , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
+                            , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
+                            , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
+                            ]
+                        ]
 
                 Nothing ->
-                    "Ticket hasn't been scanned"
+                    div [ class "card border-dark mb-3" ]
+                        [ div [ class "card-header" ] [ text "Ticket Status" ]
+                        , div [ class "card-body" ]
+                            [ h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
+                            , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
+                            , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
+                            , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
+                            ]
+                        ]
     in
-    div []
-        [ h1 [] [ text "Ticket Status" ]
-        , p [] [ text ("seatID: " ++ ticket.seatID) ]
-        , p [] [ text ("ticketID: " ++ ticket.ticketID) ]
-        , p [] [ text ("scannedAt: " ++ scannedAt) ]
+    div [ class "container" ]
+        [ div [ class "row" ]
+            [ div [ class "col-sm-12 text-center" ]
+                [ card
+                ]
+            ]
         ]
 
 
