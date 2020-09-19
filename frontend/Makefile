@@ -1,0 +1,13 @@
+elm: node_modules
+	npm install elm@latest-0.19.1
+	which elm-live || npm install -g elm-live@^3.4.1
+	elm-live src/Main.elm \
+	--dir=public \
+	--pushstate \
+	--start-page=index.html \
+	-- --output public/client.js
+.PHONY: elm
+
+node_modules: package.json
+	npm install
+.PHONY: node_modules
