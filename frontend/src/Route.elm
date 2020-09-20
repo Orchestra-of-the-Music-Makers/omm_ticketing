@@ -13,3 +13,13 @@ route =
     oneOf
         [ map TicketStatus (string </> s "status")
         ]
+
+
+toString : Page -> String
+toString page =
+    case page of
+        TicketStatus string ->
+            "/" ++ string ++ "/status"
+
+        NotFound ->
+            "/notfound"

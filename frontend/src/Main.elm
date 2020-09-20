@@ -3,8 +3,9 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (button, div, h1, h5, p, text)
-import Html.Attributes exposing (class, style, title)
+import Html exposing (button, div, form, h1, h5, input, label, p, text)
+import Html.Attributes exposing (class, for, style, title, type_)
+import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
 import Route
@@ -34,6 +35,7 @@ init flags urlUrl navKey =
             , currentPage = Route.NotFound
             , navKey = navKey
             , currentTicket = Nothing
+            , password = ""
             }
     in
     updateWithURL urlUrl model
@@ -45,7 +47,7 @@ view model =
         page =
             case model.currentPage of
                 Route.TicketStatus string ->
-                    ticketStatusPage (Maybe.withDefault emptyGetTicketStatusResponse model.currentTicket)
+                    ticketStatusPage (Maybe.withDefault emptyTicketStatus model.currentTicket)
 
                 Route.NotFound ->
                     notFoundPage
@@ -80,6 +82,23 @@ update msg model =
         GotTicketStatus (Result.Err error) ->
             ( model, Cmd.none )
 
+        OnPasswordChanged s ->
+            ( { model | password = s }, Cmd.none )
+
+        OnMarkAsScannedSubmitted ticketID ->
+            ( model, API.markTicketAsScanned model.lambdaUrl model.apiKey ticketID model.password )
+
+        TicketMarkedAsScanned ticketID (Result.Ok result) ->
+            case result.status of
+                "success" ->
+                    ( model, Browser.Navigation.pushUrl model.navKey (Route.toString (Route.TicketStatus ticketID)) )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TicketMarkedAsScanned _ (Result.Err error) ->
+            ( model, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -105,7 +124,7 @@ updateWithURL url model =
             ( newModel, Cmd.none )
 
 
-ticketStatusPage : GetTicketStatusResponse -> Html.Html Msg
+ticketStatusPage : TicketStatus -> Html.Html Msg
 ticketStatusPage ticket =
     let
         card =
@@ -128,7 +147,13 @@ ticketStatusPage ticket =
                             [ h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
                             , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
                             , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                            , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
+                            , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
+                                [ div [ class "form-group" ]
+                                    [ label [ for "inputPassword" ] [ text "Password" ]
+                                    , input [ type_ "password", class "form-control", onInput OnPasswordChanged ] []
+                                    ]
+                                , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
+                                ]
                             ]
                         ]
     in
