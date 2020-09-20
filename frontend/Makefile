@@ -12,3 +12,9 @@ elm: node_modules
 node_modules: package.json
 	npm install
 .PHONY: node_modules
+
+build-app: node_modules
+	npm install elm@latest-0.19.1
+	node scripts/replace_with_env_vars.js
+	elm make src/Main.elm --output public/client.js
+.PHONY: build-app
