@@ -3,8 +3,8 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (button, div, form, h1, h5, input, label, p, text)
-import Html.Attributes exposing (class, for, style, title, type_)
+import Html exposing (button, div, form, h1, h5, img, input, label, p, text)
+import Html.Attributes exposing (class, for, src, style, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
@@ -130,10 +130,11 @@ ticketStatusPage ticket =
         card =
             case ticket.scannedAt of
                 Just posixTime ->
-                    div [ class "card border-success mb-3" ]
+                    div [ class "card border-success mt-3 mb-3" ]
                         [ div [ class "card-header" ] [ text "Ticket Status" ]
                         , div [ class "card-body" ]
-                            [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
+                            [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
+                            , h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
                             , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
                             , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
                             , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
@@ -141,10 +142,11 @@ ticketStatusPage ticket =
                         ]
 
                 Nothing ->
-                    div [ class "card border-dark mb-3" ]
+                    div [ class "card border-dark mt-3 mb-3" ]
                         [ div [ class "card-header" ] [ text "Ticket Status" ]
                         , div [ class "card-body" ]
-                            [ h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
+                            [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
+                            , h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
                             , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
                             , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
                             , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
