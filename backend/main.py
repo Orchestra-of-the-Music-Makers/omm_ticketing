@@ -9,6 +9,7 @@ print("Loading function")
 
 dynamo = boto3.resource("dynamodb").Table("ticketing-table")
 SECRET_KEY = os.environ["SECRET_KEY"]
+ALLOWED_ORIGINS = os.environ["ALLOWED_ORIGINS"]
 
 
 def decimal_default(obj):
@@ -23,6 +24,7 @@ def respond(err, res=None):
         "body": str(err) if err else json.dumps(res, default=decimal_default),
         "headers": {
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": ALLOWED_ORIGINS,
         },
     }
 
