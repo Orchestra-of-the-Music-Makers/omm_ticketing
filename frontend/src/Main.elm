@@ -157,7 +157,7 @@ ticketStatusPage ticket =
                             ]
                         ]
     in
-    div [ class "container" ]
+    div [ class "container-fluid" ]
         [ div [ class "row" ]
             [ div [ class "col-sm-12 text-center" ]
                 [ card
