@@ -3,11 +3,12 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (button, div, form, h1, h5, img, input, label, p, text)
+import Html exposing (button, div, form, h1, h5, img, input, label, p, span, text)
 import Html.Attributes exposing (class, for, src, style, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
+import RemoteData
 import Route
 import Types exposing (..)
 import Url
@@ -34,7 +35,7 @@ init flags urlUrl navKey =
             , lambdaUrl = flags.lambdaUrl
             , currentPage = Route.NotFound
             , navKey = navKey
-            , currentTicket = Nothing
+            , currentTicket = RemoteData.NotAsked
             , password = ""
             }
     in
@@ -47,7 +48,7 @@ view model =
         page =
             case model.currentPage of
                 Route.TicketStatus string ->
-                    ticketStatusPage (Maybe.withDefault emptyTicketStatus model.currentTicket)
+                    ticketStatusPage model.currentTicket
 
                 Route.NotFound ->
                     notFoundPage
@@ -77,10 +78,10 @@ update msg model =
             updateWithURL url model
 
         GotTicketStatus (Result.Ok result) ->
-            ( { model | currentTicket = Just result }, Cmd.none )
+            ( { model | currentTicket = RemoteData.Success result }, Cmd.none )
 
         GotTicketStatus (Result.Err error) ->
-            ( model, Cmd.none )
+            ( { model | currentTicket = RemoteData.Failure error }, Cmd.none )
 
         OnPasswordChanged s ->
             ( { model | password = s }, Cmd.none )
@@ -118,45 +119,61 @@ updateWithURL url model =
     in
     case currentPage of
         Route.TicketStatus s ->
-            ( newModel, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
+            ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
 
         Route.NotFound ->
             ( newModel, Cmd.none )
 
 
-ticketStatusPage : TicketStatus -> Html.Html Msg
-ticketStatusPage ticket =
+ticketStatusPage : RemoteData.WebData TicketStatus -> Html.Html Msg
+ticketStatusPage remoteTicket =
     let
         card =
-            case ticket.scannedAt of
-                Just posixTime ->
-                    div [ class "card border-success mt-3 mb-3" ]
+            case remoteTicket of
+                RemoteData.Success ticket ->
+                    case ticket.scannedAt of
+                        Just posixTime ->
+                            div [ class "card border-success mt-3 mb-3" ]
+                                [ div [ class "card-header" ] [ text "Ticket Status" ]
+                                , div [ class "card-body" ]
+                                    [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
+                                    , h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
+                                    , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
+                                    , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
+                                    , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
+                                    ]
+                                ]
+
+                        Nothing ->
+                            div [ class "card border-dark mt-3 mb-3" ]
+                                [ div [ class "card-header" ] [ text "Ticket Status" ]
+                                , div [ class "card-body" ]
+                                    [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
+                                    , h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
+                                    , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
+                                    , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
+                                    , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
+                                        [ div [ class "form-group" ]
+                                            [ label [ for "inputPassword" ] [ text "Password" ]
+                                            , input [ type_ "password", class "form-control", onInput OnPasswordChanged ] []
+                                            ]
+                                        , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
+                                        ]
+                                    ]
+                                ]
+
+                RemoteData.Failure _ ->
+                    div [ class "card border-danger mt-3 mb-3" ]
                         [ div [ class "card-header" ] [ text "Ticket Status" ]
                         , div [ class "card-body" ]
-                            [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
-                            , h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
-                            , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
-                            , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                            , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
-                            ]
+                            [ h5 [ class "card-title" ] [ text "Failed fetching ticket status" ] ]
                         ]
 
-                Nothing ->
+                _ ->
                     div [ class "card border-dark mt-3 mb-3" ]
                         [ div [ class "card-header" ] [ text "Ticket Status" ]
                         , div [ class "card-body" ]
-                            [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
-                            , h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
-                            , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
-                            , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                            , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
-                                [ div [ class "form-group" ]
-                                    [ label [ for "inputPassword" ] [ text "Password" ]
-                                    , input [ type_ "password", class "form-control", onInput OnPasswordChanged ] []
-                                    ]
-                                , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
-                                ]
-                            ]
+                            [ div [ class "spinner-border" ] [ span [ class "sr-only" ] [ text "Loading..." ] ] ]
                         ]
     in
     div [ class "container-fluid" ]

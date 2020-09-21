@@ -8,6 +8,7 @@ import Json.Decode
 import Json.Decode.Extra
 import Json.Decode.Pipeline
 import Json.Encode
+import RemoteData exposing (RemoteData)
 import Route
 import Time
 import Url
@@ -18,7 +19,7 @@ type alias Model =
     , currentPage : Route.Page
     , lambdaUrl : String
     , navKey : Browser.Navigation.Key
-    , currentTicket : Maybe TicketStatus
+    , currentTicket : RemoteData.WebData TicketStatus
     , password : String
     }
 
