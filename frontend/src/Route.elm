@@ -1,6 +1,6 @@
 module Route exposing (..)
 
-import Url.Parser exposing ((</>), Parser, map, oneOf, s, string)
+import Url.Parser exposing ((</>), Parser, map, oneOf, string)
 
 
 type Page
@@ -11,7 +11,7 @@ type Page
 route : Parser (Page -> a) a
 route =
     oneOf
-        [ map TicketStatus (string </> s "status")
+        [ map TicketStatus string
         ]
 
 
@@ -19,7 +19,7 @@ toString : Page -> String
 toString page =
     case page of
         TicketStatus string ->
-            "/" ++ string ++ "/status"
+            "/" ++ string
 
         NotFound ->
             "/notfound"
