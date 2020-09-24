@@ -14,6 +14,8 @@ import Types exposing (..)
 import Url
 import Url.Parser
 
+softAsHardLineBreak = True
+
 
 main : Program Flags Model Msg
 main =
@@ -137,37 +139,42 @@ ticketStatusPage remoteTicket =
                                 qrCodeSrc =
                                     "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%0A&choe=UTF-8"
                             in
-                            div []
-                                [ div [ class "row mt-3 ml-3 mb-3" ]
-                                    [ div [ class "col-3 seat-no text-center pt-5" ]
-                                        [ span [ class "clearfix" ] [ text "SEAT" ]
-                                        , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
-                                        ]
-                                    , div [ class "col-9" ]
-                                        [ div [ class "row" ]
-                                            [ div [ class "col-12 text-right" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
+                            div [ class "card" ]
+                                [div [ class "card-text" ]
+                                    [ div [ class "row ml-3" ]
+                                        [ div [ class "col-3 seat-no" ]
+                                                [ div [ class "seat-content text-center"]
+                                                [ span [ class "clearfix" ] [ text "SEAT" ]
+                                                , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
+                                                , span [ class "ticketid" ] [ text ticket.ticketID ]
+                                                ]
                                             ]
-                                        , div [ class "row" ]
-                                            [ div [ class "col-12 text-right" ]
-                                                [ img [ src qrCodeSrc, alt "QR Code", class "w-100 p-3" ] []
-                                                , p [ class "text-light pr-3 font-weight-bold" ] [ text ("Ticket number: " ++ ticket.ticketID) ]
-                                                , p [ class "text-light pr-3" ] [ text "Present to usher upon entrance" ]
+                                        , div [ class "col-9" ]
+                                            [ div [ class "row" ]
+                                                [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
+                                                ]
+                                            , div [ class "row" ]
+                                                [ div [ class "col-12" ]
+                                                    [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3"] []
+                                                    ]
                                                 ]
                                             ]
                                         ]
-                                    ]
-                                , div [ class "row pr-3" ]
-                                    [ div [ class "col-10 offset-2 text-right" ]
-                                        [ h1 []
-                                            [ text "OMM Restarts!"
+                                    , div [ class "row pr-3" ]
+                                        [ div [ class "col-10 offset-2 text-right" ]
+                                            [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
+                                            , h1 [ class "" ] [ text "OMM Restarts!" ]
+                                            , p [ class "details" ] [ text "11 Oct 2020, 7.30PM"]
+                                            , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
+                                            , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
+                                            , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
+                                            , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
                                             ]
-                                        , p [ class "text-light" ] [ text "Time" ]
-                                        , p [ class "text-light" ] [ text "Venue" ]
-                                        , button [ class "btn btn-primary mb-1" ] [ text "PROGRAMME BOOKLET" ]
-                                        , button [ class "btn btn-primary" ] [ text "POST-CONCERT SURVEY" ]
-                                        , p [ class "text-muted" ] [ text "Terms & Conditions" ]
                                         ]
-                                    ]
+                                
+                                
+                                
+                                ]
 
                                 -- , div [ class "card-body" ]
                                 --     [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
