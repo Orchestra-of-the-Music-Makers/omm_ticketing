@@ -5,11 +5,13 @@ Frontend for OMM Ticketing system
 ## How to Run
 
 ### Locally
+
 ```bash
 $ make elm
 ```
 
 ### Netlify
+
 Look at `netlify.toml`
 
 ## I don't know elm where do I start?

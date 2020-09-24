@@ -14,7 +14,9 @@ import Types exposing (..)
 import Url
 import Url.Parser
 
-softAsHardLineBreak = True
+
+softAsHardLineBreak =
+    True
 
 
 main : Program Flags Model Msg
@@ -140,10 +142,10 @@ ticketStatusPage remoteTicket =
                                     "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%0A&choe=UTF-8"
                             in
                             div [ class "card" ]
-                                [div [ class "card-text" ]
+                                [ div [ class "card-text" ]
                                     [ div [ class "row ml-3" ]
                                         [ div [ class "col-3 seat-no" ]
-                                                [ div [ class "seat-content text-center"]
+                                            [ div [ class "seat-content text-center" ]
                                                 [ span [ class "clearfix" ] [ text "SEAT" ]
                                                 , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
                                                 , span [ class "ticketid" ] [ text ticket.ticketID ]
@@ -155,7 +157,7 @@ ticketStatusPage remoteTicket =
                                                 ]
                                             , div [ class "row" ]
                                                 [ div [ class "col-12" ]
-                                                    [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3"] []
+                                                    [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3" ] []
                                                     ]
                                                 ]
                                             ]
@@ -164,17 +166,14 @@ ticketStatusPage remoteTicket =
                                         [ div [ class "col-10 offset-2 text-right" ]
                                             [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
                                             , h1 [ class "" ] [ text "OMM Restarts!" ]
-                                            , p [ class "details" ] [ text "11 Oct 2020, 7.30PM"]
+                                            , p [ class "details" ] [ text "11 Oct 2020, 7.30PM" ]
                                             , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
                                             , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
                                             , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
                                             , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
                                             ]
                                         ]
-                                
-                                
-                                
-                                ]
+                                    ]
 
                                 -- , div [ class "card-body" ]
                                 --     [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
