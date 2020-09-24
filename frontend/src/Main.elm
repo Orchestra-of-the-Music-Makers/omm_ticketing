@@ -4,7 +4,7 @@ import API
 import Browser
 import Browser.Navigation
 import Html exposing (button, div, form, h1, h5, img, input, label, p, span, text)
-import Html.Attributes exposing (class, for, src, style, title, type_)
+import Html.Attributes exposing (alt, class, for, id, src, style, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
@@ -13,6 +13,10 @@ import Route
 import Types exposing (..)
 import Url
 import Url.Parser
+
+
+softAsHardLineBreak =
+    True
 
 
 main : Program Flags Model Msg
@@ -133,22 +137,57 @@ ticketStatusPage remoteTicket =
                 RemoteData.Success ticket ->
                     case ticket.scannedAt of
                         Just posixTime ->
-                            div [ class "card border-success mt-3 mb-3" ]
-                                [ div [ class "card-header" ] [ text "Ticket Status" ]
-                                , div [ class "card-body" ]
-                                    [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
-                                    , h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
-                                    , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
-                                    , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                                    , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
+                            let
+                                qrCodeSrc =
+                                    "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%0A&choe=UTF-8"
+                            in
+                            div [ class "card" ]
+                                [ div [ class "card-text" ]
+                                    [ div [ class "row ml-3" ]
+                                        [ div [ class "col-3 seat-no" ]
+                                            [ div [ class "seat-content text-center" ]
+                                                [ span [ class "clearfix" ] [ text "SEAT" ]
+                                                , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
+                                                , span [ class "ticketid" ] [ text ticket.ticketID ]
+                                                ]
+                                            ]
+                                        , div [ class "col-9" ]
+                                            [ div [ class "row" ]
+                                                [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
+                                                ]
+                                            , div [ class "row" ]
+                                                [ div [ class "col-12" ]
+                                                    [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3" ] []
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    , div [ class "row pr-3" ]
+                                        [ div [ class "col-10 offset-2 text-right" ]
+                                            [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
+                                            , h1 [ class "" ] [ text "OMM Restarts!" ]
+                                            , p [ class "details" ] [ text "11 Oct 2020, 7.30PM" ]
+                                            , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
+                                            , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
+                                            , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
+                                            , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
+                                            ]
+                                        ]
                                     ]
+
+                                -- , div [ class "card-body" ]
+                                --     [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
+                                --     , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
+                                --     , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
+                                --     , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
+                                --     ]
                                 ]
 
                         Nothing ->
                             div [ class "card border-dark mt-3 mb-3" ]
                                 [ div [ class "card-header" ] [ text "Ticket Status" ]
                                 , div [ class "card-body" ]
-                                    [ img [ src "/assets/OMM.png", class "w-50 p-3" ] []
+                                    [ img [ src "/assets/OMM-White.png", class "w-50 p-3" ] []
                                     , h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
                                     , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
                                     , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
@@ -178,10 +217,8 @@ ticketStatusPage remoteTicket =
     in
     div [ class "container-fluid" ]
         [ div [ class "row" ]
-            [ div [ class "col-sm-12 text-center" ]
-                [ card
-                ]
-            ]
+            [ div [ class "min-vh-20" ] [] ]
+        , card
         ]
 
 

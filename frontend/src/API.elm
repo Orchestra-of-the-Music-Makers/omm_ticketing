@@ -1,7 +1,6 @@
 module API exposing (..)
 
 import Http
-import Json.Decode
 import Json.Encode
 import Types exposing (..)
 
