@@ -18,6 +18,7 @@ type alias Model =
     , navKey : Browser.Navigation.Key
     , currentTicket : RemoteData.WebData TicketStatus
     , password : String
+    , zone : Time.Zone
     }
 
 
@@ -28,6 +29,7 @@ type Msg
     | OnPasswordChanged String
     | OnMarkAsScannedSubmitted String
     | TicketMarkedAsScanned String (Result.Result Http.Error MarkTicketAsScannedResponse)
+    | AdjustTimeZone Time.Zone
 
 
 type alias Flags =
@@ -80,3 +82,43 @@ decodeTimePosix =
     in
     Json.Decode.nullable Json.Decode.int
         |> Json.Decode.andThen maybeIntToMaybePosix
+
+
+toMonthStr : Time.Month -> String
+toMonthStr month =
+    case month of
+        Time.Jan ->
+            "Jan"
+
+        Time.Feb ->
+            "Feb"
+
+        Time.Mar ->
+            "Mar"
+
+        Time.Apr ->
+            "Apr"
+
+        Time.May ->
+            "May"
+
+        Time.Jun ->
+            "Jun"
+
+        Time.Jul ->
+            "Jul"
+
+        Time.Aug ->
+            "Aug"
+
+        Time.Sep ->
+            "Sep"
+
+        Time.Oct ->
+            "Oct"
+
+        Time.Nov ->
+            "Nov"
+
+        Time.Dec ->
+            "Dec"

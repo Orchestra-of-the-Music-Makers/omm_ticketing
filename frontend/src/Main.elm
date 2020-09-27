@@ -3,13 +3,15 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (button, div, form, h1, h5, img, input, label, p, span, text)
-import Html.Attributes exposing (alt, class, for, id, src, style, title, type_)
+import Html exposing (button, div, form, h1, h2, h5, img, input, label, p, span, text)
+import Html.Attributes exposing (alt, class, for, id, placeholder, src, style, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
 import RemoteData
 import Route
+import Task
+import Time
 import Types exposing (..)
 import Url
 import Url.Parser
@@ -41,9 +43,18 @@ init flags urlUrl navKey =
             , navKey = navKey
             , currentTicket = RemoteData.NotAsked
             , password = ""
+            , zone = Time.utc
             }
+
+        ( newModel, cmd ) =
+            updateWithURL urlUrl model
     in
-    updateWithURL urlUrl model
+    ( newModel
+    , Cmd.batch
+        [ Task.perform AdjustTimeZone Time.here
+        , cmd
+        ]
+    )
 
 
 view : Model -> Browser.Document Msg
@@ -51,8 +62,11 @@ view model =
     let
         page =
             case model.currentPage of
-                Route.TicketStatus string ->
+                Route.TicketStatus _ ->
                     ticketStatusPage model.currentTicket
+
+                Route.UsherTicketStatus _ ->
+                    usherTicketStatusPage model.zone model.currentTicket
 
                 Route.NotFound ->
                     notFoundPage
@@ -104,6 +118,11 @@ update msg model =
         TicketMarkedAsScanned _ (Result.Err error) ->
             ( model, Cmd.none )
 
+        AdjustTimeZone newZone ->
+            ( { model | zone = newZone }
+            , Cmd.none
+            )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -125,6 +144,9 @@ updateWithURL url model =
         Route.TicketStatus s ->
             ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
 
+        Route.UsherTicketStatus s ->
+            ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
+
         Route.NotFound ->
             ( newModel, Cmd.none )
 
@@ -135,13 +157,80 @@ ticketStatusPage remoteTicket =
         card =
             case remoteTicket of
                 RemoteData.Success ticket ->
+                    let
+                        qrCodeSrc =
+                            "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%2Fstatus%0A&choe=UTF-8"
+                    in
+                    div [ class "card omm-card" ]
+                        [ div [ class "card-text" ]
+                            [ div [ class "row ml-3" ]
+                                [ div [ class "col-3 seat-no" ]
+                                    [ div [ class "seat-content text-center" ]
+                                        [ span [ class "clearfix" ] [ text "SEAT" ]
+                                        , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
+                                        , span [ class "ticketid" ] [ text ticket.ticketID ]
+                                        ]
+                                    ]
+                                , div [ class "col-9" ]
+                                    [ div [ class "row" ]
+                                        [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
+                                        ]
+                                    , div [ class "row" ]
+                                        [ div [ class "col-12" ]
+                                            [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3" ] []
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            , div [ class "row pr-3" ]
+                                [ div [ class "col-10 offset-2 text-right" ]
+                                    [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
+                                    , h1 [ class "" ] [ text "OMM Restarts!" ]
+                                    , p [ class "details" ] [ text "11 Oct 2020, 7.30PM" ]
+                                    , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
+                                    , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
+                                    , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
+                                    , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
+                                    ]
+                                ]
+                            ]
+                        ]
+
+                RemoteData.Failure _ ->
+                    failedFetchingPage
+
+                _ ->
+                    loadingPage
+    in
+    div [ class "container-fluid" ]
+        [ div [ class "row" ]
+            [ div [ class "min-vh-20" ] [] ]
+        , card
+        ]
+
+
+usherTicketStatusPage : Time.Zone -> RemoteData.WebData TicketStatus -> Html.Html Msg
+usherTicketStatusPage zone remoteTicket =
+    let
+        card =
+            case remoteTicket of
+                RemoteData.Success ticket ->
                     case ticket.scannedAt of
                         Just posixTime ->
                             let
-                                qrCodeSrc =
-                                    "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%0A&choe=UTF-8"
+                                ( date, month, year ) =
+                                    ( String.fromInt (Time.toDay zone posixTime)
+                                    , Types.toMonthStr (Time.toMonth zone posixTime)
+                                    , String.fromInt (Time.toYear zone posixTime)
+                                    )
+
+                                ( hour, minute, second ) =
+                                    ( String.padLeft 2 '0' (String.fromInt (Time.toHour zone posixTime))
+                                    , String.padLeft 2 '0' (String.fromInt (Time.toMinute zone posixTime))
+                                    , String.padLeft 2 '0' (String.fromInt (Time.toSecond zone posixTime))
+                                    )
                             in
-                            div [ class "card" ]
+                            div [ class "card omm-card usher-card" ]
                                 [ div [ class "card-text" ]
                                     [ div [ class "row ml-3" ]
                                         [ div [ class "col-3 seat-no" ]
@@ -155,71 +244,70 @@ ticketStatusPage remoteTicket =
                                             [ div [ class "row" ]
                                                 [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
                                                 ]
-                                            , div [ class "row" ]
-                                                [ div [ class "col-12" ]
-                                                    [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3" ] []
-                                                    ]
+                                            ]
+                                        ]
+                                    , div [ class "row pr-3" ]
+                                        [ div [ class "col-10 offset-2 text-right" ]
+                                            [ h1 [ class "" ] [ text "Ticket has been scanned before" ]
+                                            , p [ class "details" ] [ text "Ticket was scanned at" ]
+                                            , p [ class "details mb-4" ] [ text (date ++ "-" ++ month ++ "-" ++ year ++ ", " ++ hour ++ ":" ++ minute ++ ":" ++ second) ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+
+                        Nothing ->
+                            div [ class "card omm-card usher-card" ]
+                                [ div [ class "card-text" ]
+                                    [ div [ class "row ml-3" ]
+                                        [ div [ class "col-3 seat-no" ]
+                                            [ div [ class "seat-content text-center" ]
+                                                [ span [ class "clearfix" ] [ text "SEAT" ]
+                                                , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
+                                                , span [ class "ticketid" ] [ text ticket.ticketID ]
+                                                ]
+                                            ]
+                                        , div [ class "col-9" ]
+                                            [ div [ class "row" ]
+                                                [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
                                                 ]
                                             ]
                                         ]
                                     , div [ class "row pr-3" ]
                                         [ div [ class "col-10 offset-2 text-right" ]
-                                            [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
-                                            , h1 [ class "" ] [ text "OMM Restarts!" ]
-                                            , p [ class "details" ] [ text "11 Oct 2020, 7.30PM" ]
-                                            , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
-                                            , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
-                                            , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
-                                            , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
+                                            [ h1 [ class "" ] [ text "Ticket not scanned yet" ]
+                                            , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
+                                                [ div [ class "form-group" ]
+                                                    [ input [ type_ "password", class "form-control", onInput OnPasswordChanged, placeholder "password" ] []
+                                                    ]
+                                                , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
+                                                ]
                                             ]
-                                        ]
-                                    ]
-
-                                -- , div [ class "card-body" ]
-                                --     [ h5 [ class "card-title text-success" ] [ text "Ticket has been scanned before" ]
-                                --     , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
-                                --     , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                                --     , p [ class "card-text" ] [ text ("Was scanned at " ++ Iso8601.fromTime posixTime) ]
-                                --     ]
-                                ]
-
-                        Nothing ->
-                            div [ class "card border-dark mt-3 mb-3" ]
-                                [ div [ class "card-header" ] [ text "Ticket Status" ]
-                                , div [ class "card-body" ]
-                                    [ img [ src "/assets/OMM-White.png", class "w-50 p-3" ] []
-                                    , h5 [ class "card-title text-dark" ] [ text "Ticket not scanned yet" ]
-                                    , p [ class "card-text" ] [ text ("Seat number " ++ ticket.seatID) ]
-                                    , p [ class "card-text" ] [ text ("Ticket number " ++ ticket.ticketID) ]
-                                    , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
-                                        [ div [ class "form-group" ]
-                                            [ label [ for "inputPassword" ] [ text "Password" ]
-                                            , input [ type_ "password", class "form-control", onInput OnPasswordChanged ] []
-                                            ]
-                                        , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
                                         ]
                                     ]
                                 ]
 
                 RemoteData.Failure _ ->
-                    div [ class "card border-danger mt-3 mb-3" ]
-                        [ div [ class "card-header" ] [ text "Ticket Status" ]
-                        , div [ class "card-body" ]
-                            [ h5 [ class "card-title" ] [ text "Failed fetching ticket status" ] ]
-                        ]
+                    failedFetchingPage
 
                 _ ->
-                    div [ class "card border-dark mt-3 mb-3" ]
-                        [ div [ class "card-header" ] [ text "Ticket Status" ]
-                        , div [ class "card-body" ]
-                            [ div [ class "spinner-border" ] [ span [ class "sr-only" ] [ text "Loading..." ] ] ]
-                        ]
+                    loadingPage
     in
     div [ class "container-fluid" ]
-        [ div [ class "row" ]
-            [ div [ class "min-vh-20" ] [] ]
-        , card
+        [ card
         ]
+
+
+failedFetchingPage : Html.Html Msg
+failedFetchingPage =
+    div [ class "m-3 text-center" ]
+        [ h1 [] [ text "Failed fetching ticket status" ] ]
+
+
+loadingPage : Html.Html Msg
+loadingPage =
+    div [ class "m-3 text-center" ]
+        [ div [ class "spinner-border text-light" ] [ span [ class "sr-only" ] [ text "Loading..." ] ] ]
 
 
 notFoundPage : Html.Html Msg
