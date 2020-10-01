@@ -42,6 +42,7 @@ type alias TicketStatus =
     { seatID : String
     , ticketID : String
     , scannedAt : Maybe Time.Posix
+    , startTime : String
     }
 
 
@@ -51,11 +52,12 @@ ticketStatusDecoder =
         |> Json.Decode.Pipeline.required "seat_id" Json.Decode.string
         |> Json.Decode.Pipeline.required "ticket_id" Json.Decode.string
         |> Json.Decode.Pipeline.optional "scanned_at" decodeTimePosix Nothing
+        |> Json.Decode.Pipeline.required "start_time" Json.Decode.string
 
 
 emptyTicketStatus : TicketStatus
 emptyTicketStatus =
-    { seatID = "", ticketID = "", scannedAt = Nothing }
+    { seatID = "", ticketID = "", scannedAt = Nothing, startTime = "" }
 
 
 type alias MarkTicketAsScannedResponse =
