@@ -29,12 +29,14 @@ body {
   border: 0px;
   min-width: 320px;
   max-width: 440px;
-  min-height: 750px;
+  min-height: 736px;
+  max-height: 896px;
   margin: 0 auto;
   padding: 0px !important;
-  background-image: url("./images/Montage_Symphony.jpg");
-  background-size: 130%;
+  background-image: url("./images/Cover_Image2.jpg");
+  background-size: 140%;
   background-repeat: no-repeat;
+  background-position: center top;
 }
 
 .card.omm-card.usher-card {
