@@ -163,6 +163,9 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
                     let
                         qrCodeSrc =
                             "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%2Fstatus%0A&choe=UTF-8"
+
+                        truncatedTicketID =
+                            String.left 6 ticket.ticketID
                     in
                     div [ class "card omm-card" ]
                         [ div [ class "card-text" ]
@@ -171,7 +174,7 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
                                     [ div [ class "seat-content text-center" ]
                                         [ span [ class "clearfix" ] [ text "SEAT" ]
                                         , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
-                                        , span [ class "ticketid" ] [ text ticket.ticketID ]
+                                        , span [ class "ticketid" ] [ text truncatedTicketID ]
                                         ]
                                     ]
                                 , div [ class "col-9" ]
