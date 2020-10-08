@@ -4,7 +4,7 @@ import API
 import Browser
 import Browser.Navigation
 import Html exposing (a, button, div, form, h1, h2, h5, img, input, label, p, span, text)
-import Html.Attributes exposing (alt, class, for, href, id, placeholder, src, style, title, type_)
+import Html.Attributes exposing (alt, class, for, href, id, placeholder, src, style, target, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
@@ -194,9 +194,9 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
                                     , h1 [ class "" ] [ text "OMM Restarts!" ]
                                     , p [ class "details" ] [ text ("11 Oct 2020, " ++ ticket.startTime) ]
                                     , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
-                                    , a [ href bookletLink ] [ button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ] ]
-                                    , a [ href surveyLink ] [ button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ] ]
-                                    , a [ href tncLink ] [ p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ] ]
+                                    , a [ href bookletLink, target "_blank" ] [ button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ] ]
+                                    , a [ href surveyLink, target "_blank" ] [ button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ] ]
+                                    , a [ href tncLink, target "_blank" ] [ p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ] ]
                                     ]
                                 ]
                             ]
