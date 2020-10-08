@@ -131,6 +131,12 @@ h1 {
   letter-spacing: 0.05em;
 }
 
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #edcb31;
+  border-color: #edcb31;
+  color: #000;
+}
+
 .grey {
   font-size: 0.8em;
   color: rgba(255, 255, 255, 0.7) !important;

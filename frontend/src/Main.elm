@@ -3,8 +3,8 @@ module Main exposing (..)
 import API
 import Browser
 import Browser.Navigation
-import Html exposing (button, div, form, h1, h2, h5, img, input, label, p, span, text)
-import Html.Attributes exposing (alt, class, for, id, placeholder, src, style, title, type_)
+import Html exposing (a, button, div, form, h1, h2, h5, img, input, label, p, span, text)
+import Html.Attributes exposing (alt, class, for, href, id, placeholder, src, style, title, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Iso8601
@@ -44,6 +44,9 @@ init flags urlUrl navKey =
             , currentTicket = RemoteData.NotAsked
             , password = ""
             , zone = Time.utc
+            , tncLink = flags.tncLink
+            , bookletLink = flags.bookletLink
+            , surveyLink = flags.surveyLink
             }
 
         ( newModel, cmd ) =
@@ -63,7 +66,7 @@ view model =
         page =
             case model.currentPage of
                 Route.TicketStatus _ ->
-                    ticketStatusPage model.currentTicket
+                    ticketStatusPage model.bookletLink model.surveyLink model.tncLink model.currentTicket
 
                 Route.UsherTicketStatus _ ->
                     usherTicketStatusPage model.zone model.currentTicket
@@ -151,8 +154,8 @@ updateWithURL url model =
             ( newModel, Cmd.none )
 
 
-ticketStatusPage : RemoteData.WebData TicketStatus -> Html.Html Msg
-ticketStatusPage remoteTicket =
+ticketStatusPage : String -> String -> String -> RemoteData.WebData TicketStatus -> Html.Html Msg
+ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
     let
         card =
             case remoteTicket of
@@ -184,13 +187,13 @@ ticketStatusPage remoteTicket =
                                 ]
                             , div [ class "row pr-3" ]
                                 [ div [ class "col-10 offset-2 text-right" ]
-                                    [ p [ class "text-light grey mb-4 font-italic" ] [ text "Present to usher upon entrance." ]
+                                    [ p [ class "text-light grey mb-4 font-italic" ] [ text "Please show this to the usher to enter the hall." ]
                                     , h1 [ class "" ] [ text "OMM Restarts!" ]
                                     , p [ class "details" ] [ text ("11 Oct 2020, " ++ ticket.startTime) ]
                                     , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
-                                    , button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ]
-                                    , button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ]
-                                    , p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ]
+                                    , a [ href bookletLink ] [ button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ] ]
+                                    , a [ href surveyLink ] [ button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ] ]
+                                    , a [ href tncLink ] [ p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ] ]
                                     ]
                                 ]
                             ]

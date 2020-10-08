@@ -19,6 +19,9 @@ type alias Model =
     , currentTicket : RemoteData.WebData TicketStatus
     , password : String
     , zone : Time.Zone
+    , tncLink : String
+    , bookletLink : String
+    , surveyLink : String
     }
 
 
@@ -35,6 +38,9 @@ type Msg
 type alias Flags =
     { apiKey : String
     , lambdaUrl : String
+    , tncLink : String
+    , bookletLink : String
+    , surveyLink : String
     }
 
 
