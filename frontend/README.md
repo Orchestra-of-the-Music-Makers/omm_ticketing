@@ -7,12 +7,16 @@ Frontend for OMM Ticketing system
 ### Locally
 
 ```bash
+$ mv .env.sample .env # fill in env file with proper values
+$ source .env
 $ make elm
 ```
 
 ### Netlify
 
 Look at `netlify.toml`
+
+Set your environment variable on Netlify Deploy settings.
 
 ## I don't know elm where do I start?
 
