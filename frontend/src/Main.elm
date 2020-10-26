@@ -6,10 +6,13 @@ import Browser.Navigation
 import Html exposing (a, button, div, form, h1, h2, h5, img, input, label, p, span, text)
 import Html.Attributes exposing (alt, class, for, href, id, placeholder, src, style, target, title, type_)
 import Html.Events exposing (onInput, onSubmit)
+import Html.Lazy exposing (lazy)
 import Http
 import Iso8601
+import QRCode exposing (QRCode)
 import RemoteData
 import Route
+import Svg.Attributes
 import Task
 import Time
 import Types exposing (..)
@@ -161,11 +164,22 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
             case remoteTicket of
                 RemoteData.Success ticket ->
                     let
-                        qrCodeSrc =
-                            "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fticketing.orchestra.sg%2F" ++ ticket.ticketID ++ "%2Fstatus%0A&choe=UTF-8"
+                        ticketLink =
+                            "https://ticketing.orchestra.sg/" ++ ticket.ticketID ++ "/status"
 
                         truncatedTicketID =
                             String.left 6 ticket.ticketID
+
+                        qrCode message =
+                            QRCode.fromStringWith QRCode.Quartile message
+                                |> Result.map
+                                    (QRCode.toSvg
+                                        [ Svg.Attributes.width "100px"
+                                        , Svg.Attributes.height "100px"
+                                        , Svg.Attributes.class "img-rounded pr-3"
+                                        ]
+                                    )
+                                |> Result.withDefault (text "Error while encoding to QRCode.")
                     in
                     div [ class "card omm-card" ]
                         [ div [ class "card-text" ]
@@ -182,10 +196,7 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
                                         [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
                                         ]
                                     , div [ class "row" ]
-                                        [ div [ class "col-12" ]
-                                            [ img [ src qrCodeSrc, alt "QR Code", class "img-rounded pr-3" ] []
-                                            ]
-                                        ]
+                                        [ div [ class "col-12" ] [ lazy qrCode ticketLink ] ]
                                     ]
                                 ]
                             , div [ class "row pr-3" ]
