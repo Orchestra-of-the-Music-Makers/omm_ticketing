@@ -1,7 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 
-const srcFiles = ["public/index.html"];
+const srcFiles = ["public/index.template.html"];
+const destFile = "public/index.html";
 
 srcFiles.forEach((srcFile, i) => {
   const srcContent = fs.readFileSync(srcFile, { encoding: "utf8" });
@@ -25,7 +26,7 @@ srcFiles.forEach((srcFile, i) => {
     "{CONCERT_BOOKLET_LINK}",
     process.env.CONCERT_BOOKLET_LINK
   );
-  fs.writeFile(srcFile, withConcertBooklet, "utf8", function (err) {
+  fs.writeFile(destFile, withConcertBooklet, "utf8", function (err) {
     if (err) return console.log(err);
   });
 });
