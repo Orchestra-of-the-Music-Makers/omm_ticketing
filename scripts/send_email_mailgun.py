@@ -6,7 +6,7 @@ import json
 FROM_EMAIL = "OMM Ticketing <ticketing@orchestra.sg>"
 
 # update to your dynamic template id from the UI
-TEMPLATE_ID = "omm_pilot_template"
+TEMPLATE_ID = os.environ.get("TEMPLATE_ID")
 
 TO_EMAILS = []
 

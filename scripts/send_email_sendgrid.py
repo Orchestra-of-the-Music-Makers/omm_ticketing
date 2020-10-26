@@ -6,7 +6,7 @@ from sendgrid.helpers.mail import Mail, Email
 FROM_EMAIL = Email("ticketing@orchestra.sg", "OMM Ticketing")
 
 # update to your dynamic template id from the UI
-TEMPLATE_ID = "d-a9eda0dc7c5d483789fff18191da259e"
+TEMPLATE_ID = os.environ.get("TEMPLATE_ID")
 
 # list of emails and preheader names, update with yours
 TO_EMAILS = []
