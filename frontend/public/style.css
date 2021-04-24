@@ -20,6 +20,10 @@ body {
   background-color: #000;
 }
 
+canvas {
+  box-shadow: 2px 2px 8px #ddd;
+}
+
 .card.omm-card {
   position: relative;
   background-color: #000;
@@ -141,4 +145,26 @@ h1 {
   font-size: 0.8em;
   color: rgba(255, 255, 255, 0.7) !important;
   margin-bottom: 0em;
+}
+
+.sticky {
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.top-bar {
+  background-color: #edcb31;
+  text-align: center;
+}
+
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.white {
+  font-size: 0.8em;
+  color: white;
 }

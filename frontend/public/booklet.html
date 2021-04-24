@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="/booklet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <pre id="elm"></pre>
+    <script type="text/javascript">
+      let url = "assets/sample.pdf";
+      var pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+      // The workerSrc property shall be specified.
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+      pdfjsLib.getDocument(url).promise.then(pdf => {
+        let pageNum = 1;
+        var flags = {
+          title: url,
+          numPages: pdf.numPages,
+          pageNum: pageNum
+        };
+        var app = Elm.Booklet.init({
+          node: document.getElementById("elm"),
+          flags: flags,
+        });
+
+        window.addEventListener("touchstart", (event) => {
+          app.ports.touchStart.send(getTouchEvents(event.changedTouches));
+        });
+
+        window.addEventListener("touchmove", (event) => {
+          app.ports.touchMove.send(getTouchEvents(event.changedTouches));
+        });
+
+        window.addEventListener("touchend", (event) => {
+          app.ports.touchEnd.send(getTouchEvents(event.changedTouches));
+        });
+
+        window.addEventListener("touchcancel", (event) => {
+          app.ports.touchCancel.send(getTouchEvents(event.changedTouches));
+        });
+
+        // touch
+        function getTouchEvents(touches) {
+          const a = [];
+          for (let i = 0; i < touches.length; i++) {
+            a.push({
+              identifier: touches[i].identifier,
+              pageX: touches[i].pageX,
+              pageY: touches[i].pageY,
+            });
+          }
+          return a;
+        }
+
+        function renderPage(num) {
+          pdf.getPage(num).then(page => {
+
+            // calculate viewport
+            var desiredWidth = window.innerWidth;
+            var viewport = page.getViewport({ scale: 1 });
+            var scale = desiredWidth / viewport.width;
+            var scaledViewport = page.getViewport({ scale: scale });
+
+            // set canvas
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext('2d');
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+
+            var renderContext = {
+              canvasContext: context,
+              viewport: scaledViewport
+            };
+            page.render(renderContext);
+          });
+        }
+
+        app.ports.paginate.subscribe(function(num) {
+          renderPage(num);
+        });
+
+        renderPage(pageNum);
+      });
+    </script>
+  </body>
+</html>

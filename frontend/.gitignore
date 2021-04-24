@@ -1,4 +1,5 @@
 elm-stuff
 node_modules
 public/client.js
+public/booklet.js
 .DS_Store
