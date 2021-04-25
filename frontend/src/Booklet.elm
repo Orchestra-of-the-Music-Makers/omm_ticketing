@@ -95,17 +95,25 @@ update msg model =
             ( { model | pageNum = pageNum }, cmd )
 
         TouchStart event ->
-            ( { model | startEvent = List.head event }, Cmd.none )
+            let
+                startEvent =
+                    if List.length event > 1 then
+                        Nothing
+
+                    else
+                        List.head event
+            in
+            ( { model | startEvent = startEvent }, Cmd.none )
 
         TouchEnd event ->
             let
                 swipeDirection =
                     case ( model.startEvent, List.head event ) of
                         ( Just startEvent, Just endEvent ) ->
-                            if startEvent.pageX - endEvent.pageX > 30 then
+                            if startEvent.pageX - endEvent.pageX > 75 then
                                 Just Left
 
-                            else if startEvent.pageX - endEvent.pageX < -30 then
+                            else if startEvent.pageX - endEvent.pageX < -75 then
                                 Just Right
 
                             else
@@ -147,7 +155,15 @@ update msg model =
             ( { model | startEvent = Nothing, pageNum = newPageNum }, cmd )
 
         TouchOther event ->
-            ( model, Cmd.none )
+            let
+                startEvent =
+                    if List.length event > 1 then
+                        Nothing
+
+                    else
+                        model.startEvent
+            in
+            ( { model | startEvent = startEvent }, Cmd.none )
 
         Tick newTime ->
             let
