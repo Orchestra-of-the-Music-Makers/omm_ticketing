@@ -1,9 +1,10 @@
 port module Booklet exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, br, button, canvas, div, p, header, text, a)
-import Html.Attributes exposing (id, class, href)
+import Html exposing (Html, a, br, button, canvas, div, header, p, text)
+import Html.Attributes exposing (class, href, id)
 import Html.Events exposing (onClick)
+
 
 type alias Flags =
     { title : String
@@ -16,11 +17,13 @@ type alias Model =
     { title : String
     , numPages : Int
     , pageNum : Int
+    , startEvent : Maybe TouchEvent
     }
+
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.title flags.numPages flags.pageNum, Cmd.none )
+    ( Model flags.title flags.numPages flags.pageNum Nothing, Cmd.none )
 
 
 
@@ -30,7 +33,9 @@ init flags =
 type Msg
     = PrevPage
     | NextPage
-    | Touchhh (List TouchEvent)
+    | TouchOther (List TouchEvent)
+    | TouchStart (List TouchEvent)
+    | TouchEnd (List TouchEvent)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -49,22 +54,69 @@ update msg model =
 
         NextPage ->
             let
-                pageNum =
+                ( pageNum, cmd ) =
                     if model.pageNum >= model.numPages then
-                        model.numPages
+                        ( model.numPages, Cmd.none )
 
                     else
-                        model.pageNum + 1
+                        ( model.pageNum + 1, paginate (model.pageNum + 1) )
             in
-            ( { model | pageNum = pageNum }, paginate pageNum )
+            ( { model | pageNum = pageNum }, cmd )
 
-        Touchhh event ->
-          let
-              _ =
-                Debug.log "event" event
-          in
+        TouchStart event ->
+            ( { model | startEvent = List.head event }, Cmd.none )
 
-          (model, Cmd.none)
+        TouchEnd event ->
+            let
+                swipeDirection =
+                    case ( model.startEvent, List.head event ) of
+                        ( Just startEvent, Just endEvent ) ->
+                            if startEvent.pageX - endEvent.pageX > 30 then
+                                Just Left
+
+                            else if startEvent.pageX - endEvent.pageX < -30 then
+                                Just Right
+
+                            else
+                                Nothing
+
+                        ( Nothing, _ ) ->
+                            Nothing
+
+                        ( _, Nothing ) ->
+                            Nothing
+
+                ( newPageNum, cmd ) =
+                    case swipeDirection of
+                        Just Right ->
+                            let
+                                pageNum =
+                                    if model.pageNum <= 1 then
+                                        1
+
+                                    else
+                                        model.pageNum - 1
+                            in
+                            ( pageNum, paginate pageNum )
+
+                        Just Left ->
+                            let
+                                pageNum =
+                                    if model.pageNum >= model.numPages then
+                                        model.numPages
+
+                                    else
+                                        model.pageNum + 1
+                            in
+                            ( pageNum, paginate pageNum )
+
+                        Nothing ->
+                            ( model.pageNum, Cmd.none )
+            in
+            ( { model | startEvent = Nothing, pageNum = newPageNum }, cmd )
+
+        TouchOther event ->
+            ( model, Cmd.none )
 
 
 
@@ -73,11 +125,15 @@ update msg model =
 
 port paginate : Int -> Cmd msg
 
+
 port touchStart : (List TouchEvent -> msg) -> Sub msg
+
 
 port touchMove : (List TouchEvent -> msg) -> Sub msg
 
+
 port touchEnd : (List TouchEvent -> msg) -> Sub msg
+
 
 port touchCancel : (List TouchEvent -> msg) -> Sub msg
 
@@ -89,17 +145,25 @@ type alias TouchEvent =
     }
 
 
+type SwipeDirection
+    = Left
+    | Right
+
+
+
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  Sub.batch [
-    touchStart Touchhh
-    , touchMove Touchhh
-    , touchEnd Touchhh
-    , touchCancel Touchhh
-  ]
+    Sub.batch
+        [ touchStart TouchStart
+        , touchMove TouchOther
+        , touchEnd TouchEnd
+        , touchCancel TouchOther
+        ]
+
+
 
 -- VIEW
 
@@ -112,10 +176,10 @@ view model =
         , br [] []
         , canvas [ id "canvas" ] []
         , div [ class "fixed-bottom" ]
-          [ p [ class "white" ] [ text ("Page: " ++ String.fromInt model.pageNum ++ " of " ++ String.fromInt model.numPages) ]
-          , button [ onClick PrevPage ] [ text "< Prev Page" ]
-          , button [ onClick NextPage ] [ text "Next Page >" ]
-          ]
+            [ p [ class "white" ] [ text ("Page: " ++ String.fromInt model.pageNum ++ " of " ++ String.fromInt model.numPages) ]
+            , button [ onClick PrevPage ] [ text "< Prev Page" ]
+            , button [ onClick NextPage ] [ text "Next Page >" ]
+            ]
         ]
 
 
