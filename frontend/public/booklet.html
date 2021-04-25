@@ -19,7 +19,12 @@
   <body>
     <pre id="elm"></pre>
     <script type="text/javascript">
-      let url = "assets/sample.pdf";
+      var urlParams = new URLSearchParams(window.location.search);
+      var concertSlot = urlParams.get('concertSlot') || "";
+
+      // CONCERT DATA, change here for different pdfs
+      var bookletMap = {"may41": "assets/Mahler_Mobile.pdf"}
+      var url = bookletMap[concertSlot] || "assets/OMM_Info_booklet.pdf";
       var pdfjsLib = window['pdfjs-dist/build/pdf'];
 
       // The workerSrc property shall be specified.
@@ -29,7 +34,8 @@
         var flags = {
           title: url,
           numPages: pdf.numPages,
-          pageNum: pageNum
+          pageNum: pageNum,
+          concertSlot: concertSlot
         };
         var app = Elm.Booklet.init({
           node: document.getElementById("elm"),
@@ -65,6 +71,43 @@
           return a;
         }
 
+        function scaleCanvas(canvas, context, width, height) {
+          // assume the device pixel ratio is 1 if the browser doesn't specify it
+          const devicePixelRatio = window.devicePixelRatio || 1;
+
+          // determine the 'backing store ratio' of the canvas context
+          const backingStoreRatio = (
+            context.webkitBackingStorePixelRatio ||
+            context.mozBackingStorePixelRatio ||
+            context.msBackingStorePixelRatio ||
+            context.oBackingStorePixelRatio ||
+            context.backingStorePixelRatio || 1
+          );
+
+          // determine the actual ratio we want to draw at
+          const ratio = devicePixelRatio / backingStoreRatio;
+
+          if (devicePixelRatio !== backingStoreRatio) {
+            // set the 'real' canvas size to the higher width/height
+            canvas.width = width * ratio;
+            canvas.height = height * ratio;
+
+            // ...then scale it back down with CSS
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+          }
+          else {
+            // this is a normal 1:1 device; just scale it simply
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = '';
+            canvas.style.height = '';
+          }
+
+          // scale the drawing context so everything will work at the higher ratio
+          context.scale(ratio, ratio);
+        }
+
         function renderPage(num) {
           pdf.getPage(num).then(page => {
 
@@ -77,8 +120,7 @@
             // set canvas
             var canvas = document.getElementById("canvas");
             var context = canvas.getContext('2d');
-            canvas.height = scaledViewport.height;
-            canvas.width = scaledViewport.width;
+            scaleCanvas(canvas, context, window.innerWidth, window.innerWidth*1.76);
 
             var renderContext = {
               canvasContext: context,

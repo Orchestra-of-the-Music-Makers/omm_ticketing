@@ -20,10 +20,6 @@ body {
   background-color: #000;
 }
 
-canvas {
-  box-shadow: 2px 2px 8px #ddd;
-}
-
 .card.omm-card {
   position: relative;
   background-color: #000;

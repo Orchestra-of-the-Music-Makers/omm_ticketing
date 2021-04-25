@@ -4,12 +4,15 @@ import Browser
 import Html exposing (Html, a, br, button, canvas, div, header, p, text)
 import Html.Attributes exposing (class, href, id)
 import Html.Events exposing (onClick)
+import Task
+import Time
 
 
 type alias Flags =
     { title : String
     , numPages : Int
     , pageNum : Int
+    , concertSlot : String
     }
 
 
@@ -18,12 +21,38 @@ type alias Model =
     , numPages : Int
     , pageNum : Int
     , startEvent : Maybe TouchEvent
+    , concertSlot : ConcertSlot
+    , zone : Time.Zone
+    , time : Time.Posix
+    , displaySurveyBanner : Bool
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.title flags.numPages flags.pageNum Nothing, Cmd.none )
+    let
+        concertSlot =
+            case flags.concertSlot of
+                "may41" ->
+                    May41
+
+                "may42" ->
+                    May42
+
+                _ ->
+                    Unknown
+    in
+    ( { title = flags.title
+      , numPages = flags.numPages
+      , pageNum = flags.pageNum
+      , startEvent = Nothing
+      , concertSlot = concertSlot
+      , zone = Time.utc
+      , time = Time.millisToPosix 0
+      , displaySurveyBanner = False
+      }
+    , Task.perform AdjustTimeZone Time.here
+    )
 
 
 
@@ -36,6 +65,8 @@ type Msg
     | TouchOther (List TouchEvent)
     | TouchStart (List TouchEvent)
     | TouchEnd (List TouchEvent)
+    | Tick Time.Posix
+    | AdjustTimeZone Time.Zone
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,6 +149,28 @@ update msg model =
         TouchOther event ->
             ( model, Cmd.none )
 
+        Tick newTime ->
+            let
+                concertHasEnded =
+                    case model.concertSlot of
+                        Unknown ->
+                            True
+
+                        May41 ->
+                            Time.posixToMillis newTime > 1619340120000
+
+                        May42 ->
+                            Time.posixToMillis newTime > 1619340120000
+            in
+            ( { model | time = newTime, displaySurveyBanner = concertHasEnded }
+            , Cmd.none
+            )
+
+        AdjustTimeZone newZone ->
+            ( { model | zone = newZone }
+            , Cmd.none
+            )
+
 
 
 -- PORT
@@ -161,6 +214,7 @@ subscriptions _ =
         , touchMove TouchOther
         , touchEnd TouchEnd
         , touchCancel TouchOther
+        , Time.every 1000 Tick
         ]
 
 
@@ -170,10 +224,17 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
+    let
+        banner =
+            if model.displaySurveyBanner then
+                div [ class "sticky top-bar" ] [ a [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit" ] [ text "Take post-concert survey >>" ] ]
+
+            else
+                div [] []
+    in
     div
         []
-        [ div [ class "sticky top-bar" ] [ a [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit" ] [ text "Take post-concert survey >>" ] ]
-        , br [] []
+        [ banner
         , canvas [ id "canvas" ] []
         , div [ class "fixed-bottom" ]
             [ p [ class "white" ] [ text ("Page: " ++ String.fromInt model.pageNum ++ " of " ++ String.fromInt model.numPages) ]
@@ -195,3 +256,13 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
+
+
+---- DATA ----
+
+
+type ConcertSlot
+    = May41
+    | May42
+    | Unknown
