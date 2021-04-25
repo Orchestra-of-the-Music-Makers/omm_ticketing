@@ -23,7 +23,7 @@
       var concertSlot = urlParams.get('concertSlot') || "";
 
       // CONCERT DATA, change here for different pdfs
-      var bookletMap = {"may41": "assets/Mahler_Mobile.pdf"}
+      var bookletMap = {"may1": "assets/Mahler_Mobile.pdf", "may24": "assets/Mahler_Mobile.pdf", "may28": "assets/Mahler_Mobile.pdf"}
       var url = bookletMap[concertSlot] || "assets/OMM_Info_booklet.pdf";
       var pdfjsLib = window['pdfjs-dist/build/pdf'];
 

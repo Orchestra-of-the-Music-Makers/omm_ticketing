@@ -20,6 +20,10 @@ body {
   background-color: #000;
 }
 
+canvas {
+  margin-bottom: 100px;
+}
+
 .card.omm-card {
   position: relative;
   background-color: #000;
@@ -159,6 +163,16 @@ h1 {
   bottom: 0;
   width: 100%;
 }
+
+.page-navigation {
+  background-color: white;
+}
+
+.page-navigation p {
+  display: inline;
+}
+
+
 
 .white {
   font-size: 0.8em;

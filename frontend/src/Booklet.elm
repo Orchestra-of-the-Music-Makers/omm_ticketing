@@ -33,11 +33,14 @@ init flags =
     let
         concertSlot =
             case flags.concertSlot of
-                "may41" ->
-                    May41
+                "may1" ->
+                    May1
 
-                "may42" ->
-                    May42
+                "may24" ->
+                    May24
+
+                "may28" ->
+                    May28
 
                 _ ->
                     Unknown
@@ -172,10 +175,13 @@ update msg model =
                         Unknown ->
                             True
 
-                        May41 ->
+                        May1 ->
                             Time.posixToMillis newTime > 1619340120000
 
-                        May42 ->
+                        May24 ->
+                            Time.posixToMillis newTime > 1619340120000
+
+                        May28 ->
                             Time.posixToMillis newTime > 1619340120000
             in
             ( { model | time = newTime, displaySurveyBanner = concertHasEnded }
@@ -252,10 +258,10 @@ view model =
         []
         [ banner
         , canvas [ id "canvas" ] []
-        , div [ class "fixed-bottom" ]
-            [ p [ class "white" ] [ text ("Page: " ++ String.fromInt model.pageNum ++ " of " ++ String.fromInt model.numPages) ]
-            , button [ onClick PrevPage ] [ text "< Prev Page" ]
-            , button [ onClick NextPage ] [ text "Next Page >" ]
+        , div [ class "fixed-bottom page-navigation" ]
+            [ button [ onClick PrevPage ] [ text "< Prev" ]
+            , p [] [ text (String.fromInt model.pageNum ++ " / " ++ String.fromInt model.numPages) ]
+            , button [ onClick NextPage ] [ text "Next >" ]
             ]
         ]
 
@@ -279,6 +285,7 @@ main =
 
 
 type ConcertSlot
-    = May41
-    | May42
+    = May1
+    | May24
+    | May28
     | Unknown
