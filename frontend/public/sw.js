@@ -1,29 +1,43 @@
 importScripts("/cache-polyfill.js");
 
+var cacheName = "site-cache";
+
 self.addEventListener("install", function (e) {
   e.waitUntil(
-    caches.open("booklet").then(function (cache) {
+    caches.open(cacheName).then(function (cache) {
       return cache.addAll([
         "/",
         "/booklet.html",
-        "/?concertSlot=may1",
         "/reload/reload.js",
         "/booklet.js",
         "/style.css",
-        "assets/OMM_Info_booklet.pdf",
-        "assets/Mahler_Mobile.pdf",
-        "fonts/Proxima%20Nova%20Regular.otf",
       ]);
     })
   );
 });
 
-self.addEventListener("fetch", function (event) {
-  console.log(event.request.url);
-
+// Cache any new resources as they are fetched
+self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      return response || fetch(event.request);
-    })
+    caches
+      .match(event.request, { ignoreSearch: true })
+      .then(function (response) {
+        if (response) {
+          return response;
+        }
+        var requestToCache = event.request.clone();
+
+        return fetch(requestToCache).then(function (response) {
+          if (!response || response.status !== 200) {
+            return response;
+          }
+
+          var responseToCache = response.clone();
+          caches.open(cacheName).then(function (cache) {
+            cache.put(requestToCache, responseToCache);
+          });
+          return response;
+        });
+      })
   );
 });
