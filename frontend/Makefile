@@ -30,3 +30,11 @@ build-app: node_modules
 	elm make src/Main.elm --output public/client.js
 	elm make src/Booklet.elm --output public/booklet.js
 .PHONY: build-app
+
+start-with-docker:
+	docker run --rm -it \
+		-p 8000:8000 \
+		-v `pwd`:/pwd \
+		-w /pwd \
+		node:12 \
+		make elm
