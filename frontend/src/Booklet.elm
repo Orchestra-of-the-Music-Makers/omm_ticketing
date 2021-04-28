@@ -9,7 +9,7 @@ import Time
 
 
 type alias Flags =
-    {}
+    { displaySurveyBanner : Bool }
 
 
 type alias Model =
@@ -23,7 +23,7 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { zone = Time.utc
       , time = Time.millisToPosix 0
-      , displaySurveyBanner = False
+      , displaySurveyBanner = flags.displaySurveyBanner
       }
     , Task.perform AdjustTimeZone Time.here
     )

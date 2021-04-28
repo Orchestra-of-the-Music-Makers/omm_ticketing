@@ -38,7 +38,7 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
       pdfjsLib.getDocument(url).promise.then(pdf => {
         let pageNum = 1;
-        var flags = {};
+        var flags = {displaySurveyBanner: urlParams.get('displayBanner') == '1'};
         var app = Elm.Booklet.init({
           node: document.getElementById("elm"),
           flags: flags,
