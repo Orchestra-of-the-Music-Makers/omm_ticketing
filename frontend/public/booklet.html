@@ -38,44 +38,11 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
       pdfjsLib.getDocument(url).promise.then(pdf => {
         let pageNum = 1;
-        var flags = {
-          title: url,
-          numPages: pdf.numPages,
-          pageNum: pageNum,
-        };
+        var flags = {};
         var app = Elm.Booklet.init({
           node: document.getElementById("elm"),
           flags: flags,
         });
-
-        window.addEventListener("touchstart", (event) => {
-          app.ports.touchStart.send(getTouchEvents(event.changedTouches));
-        });
-
-        window.addEventListener("touchmove", (event) => {
-          app.ports.touchMove.send(getTouchEvents(event.changedTouches));
-        });
-
-        window.addEventListener("touchend", (event) => {
-          app.ports.touchEnd.send(getTouchEvents(event.changedTouches));
-        });
-
-        window.addEventListener("touchcancel", (event) => {
-          app.ports.touchCancel.send(getTouchEvents(event.changedTouches));
-        });
-
-        // touch
-        function getTouchEvents(touches) {
-          const a = [];
-          for (let i = 0; i < touches.length; i++) {
-            a.push({
-              identifier: touches[i].identifier,
-              pageX: touches[i].pageX,
-              pageY: touches[i].pageY,
-            });
-          }
-          return a;
-        }
 
         function scaleCanvas(canvas, context, width, height) {
           // assume the device pixel ratio is 1 if the browser doesn't specify it
@@ -124,7 +91,10 @@
             var scaledViewport = page.getViewport({ scale: scale });
 
             // set canvas
-            var canvas = document.getElementById("canvas");
+            var canvasId = 'pdf-viewer-' + num;
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute("id", canvasId)
+            document.getElementById('pdf-viewer').appendChild(canvas);
             var context = canvas.getContext('2d');
             scaleCanvas(canvas, context, window.innerWidth, window.innerWidth*1.76);
 
@@ -136,11 +106,9 @@
           });
         }
 
-        app.ports.paginate.subscribe(function(num) {
-          renderPage(num);
-        });
-
-        renderPage(pageNum);
+        for (var i = 1; i <= pdf.numPages; i++) {
+            renderPage(i);
+        }
       });
     </script>
   </body>
