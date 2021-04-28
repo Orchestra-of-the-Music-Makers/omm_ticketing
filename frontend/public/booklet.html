@@ -29,11 +29,9 @@
       window.addEventListener('offline', () => console.log('Became offline'));
 
       var urlParams = new URLSearchParams(window.location.search);
-      var concertSlot = urlParams.get('concertSlot') || "";
 
       // CONCERT DATA, change here for different pdfs
-      var bookletMap = {"may1": "assets/Mahler_Mobile.pdf", "may24": "assets/Mahler_Mobile.pdf", "may28": "assets/Mahler_Mobile.pdf"}
-      var url = bookletMap[concertSlot] || "assets/OMM_Info_booklet.pdf";
+      var url = "assets/Mahler_Mobile.pdf";
       var pdfjsLib = window['pdfjs-dist/build/pdf'];
 
       // The workerSrc property shall be specified.
@@ -44,7 +42,6 @@
           title: url,
           numPages: pdf.numPages,
           pageNum: pageNum,
-          concertSlot: concertSlot
         };
         var app = Elm.Booklet.init({
           node: document.getElementById("elm"),

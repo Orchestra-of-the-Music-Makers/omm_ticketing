@@ -1,7 +1,7 @@
 port module Booklet exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, a, br, button, canvas, div, header, p, text)
+import Html exposing (Html, a, button, canvas, div, p, text)
 import Html.Attributes exposing (class, href, id)
 import Html.Events exposing (onClick)
 import Task
@@ -12,7 +12,6 @@ type alias Flags =
     { title : String
     , numPages : Int
     , pageNum : Int
-    , concertSlot : String
     }
 
 
@@ -21,7 +20,6 @@ type alias Model =
     , numPages : Int
     , pageNum : Int
     , startEvent : Maybe TouchEvent
-    , concertSlot : ConcertSlot
     , zone : Time.Zone
     , time : Time.Posix
     , displaySurveyBanner : Bool
@@ -30,26 +28,10 @@ type alias Model =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    let
-        concertSlot =
-            case flags.concertSlot of
-                "may1" ->
-                    May1
-
-                "may24" ->
-                    May24
-
-                "may28" ->
-                    May28
-
-                _ ->
-                    Unknown
-    in
     ( { title = flags.title
       , numPages = flags.numPages
       , pageNum = flags.pageNum
       , startEvent = Nothing
-      , concertSlot = concertSlot
       , zone = Time.utc
       , time = Time.millisToPosix 0
       , displaySurveyBanner = False
@@ -171,18 +153,11 @@ update msg model =
         Tick newTime ->
             let
                 concertHasEnded =
-                    case model.concertSlot of
-                        Unknown ->
-                            True
-
-                        May1 ->
-                            Time.posixToMillis newTime > 1619340120000
-
-                        May24 ->
-                            Time.posixToMillis newTime > 1619340120000
-
-                        May28 ->
-                            Time.posixToMillis newTime > 1619340120000
+                    not
+                        ((Time.posixToMillis newTime < 1619859600000)
+                            || (Time.posixToMillis newTime > 1619938800000 && Time.posixToMillis newTime < 1619946000000)
+                            || (Time.posixToMillis newTime > 1619953200000 && Time.posixToMillis newTime < 1619960400000)
+                        )
             in
             ( { model | time = newTime, displaySurveyBanner = concertHasEnded }
             , Cmd.none
@@ -278,14 +253,3 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
-
-
-
----- DATA ----
-
-
-type ConcertSlot
-    = May1
-    | May24
-    | May28
-    | Unknown
