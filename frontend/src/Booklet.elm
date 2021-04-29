@@ -16,6 +16,7 @@ type alias Model =
     { zone : Time.Zone
     , time : Time.Posix
     , displaySurveyBanner : Bool
+    , forceDisplayBanner : Bool
     }
 
 
@@ -23,7 +24,8 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { zone = Time.utc
       , time = Time.millisToPosix 0
-      , displaySurveyBanner = flags.displaySurveyBanner
+      , displaySurveyBanner = False
+      , forceDisplayBanner = flags.displaySurveyBanner
       }
     , Task.perform AdjustTimeZone Time.here
     )
@@ -44,7 +46,7 @@ update msg model =
         Tick newTime ->
             let
                 concertHasEnded =
-                    not
+                    model.forceDisplayBanner || not
                         ((Time.posixToMillis newTime < 1619859600000)
                             || (Time.posixToMillis newTime > 1619938800000 && Time.posixToMillis newTime < 1619946000000)
                             || (Time.posixToMillis newTime > 1619953200000 && Time.posixToMillis newTime < 1619960400000)
