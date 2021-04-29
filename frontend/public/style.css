@@ -153,14 +153,17 @@ h1 {
 .top-bar {
   background-color: #edcb31;
   text-align: center;
+  padding: 16px;
+  line-height: 16px;
+  height: auto;
   font-size: 0.8em;
   font-weight: 400;
-  height: 48px;
-  line-height: 48px;
-  text-align: center;
+  text-align: middle;
+  width: 100vw;
+  overflow: auto;
 }
 
-.top-bar a {
+.link-text {
   color: black;
   font-weight: 600;
   border-bottom: 1px solid black;
@@ -171,11 +174,7 @@ h1 {
 }
 
 .top-bar img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-  margin-left: 0px;
+  margin-left: 2px;
 }
 
 .fixed-bottom {

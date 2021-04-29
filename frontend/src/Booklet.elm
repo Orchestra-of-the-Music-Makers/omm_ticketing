@@ -87,7 +87,7 @@ view model =
                 [ span []
                 [text "Help us improve your experience! ",
                 span [] [ a 
-                [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit"] [ text "Take survey", img [src "assets/arrow-right.svg", width 12, height 12] []
+                [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit"] [ span [] [ span [ class "link-text"] [ text "Take survey"]], img [src "assets/arrow-right.svg", width 12, height 12] []
                 ] ] ] ]
 
             else
