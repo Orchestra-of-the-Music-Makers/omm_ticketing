@@ -1,8 +1,8 @@
 module Booklet exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, a, button, canvas, div, p, text)
-import Html.Attributes exposing (class, href, id)
+import Html exposing (Html, a, button, canvas, div, p, span, text, img)
+import Html.Attributes exposing (class, href, id, src, height, width)
 import Html.Events exposing (onClick)
 import Task
 import Time
@@ -83,7 +83,12 @@ view model =
     let
         banner =
             if model.displaySurveyBanner then
-                div [ class "sticky top-bar" ] [ a [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit" ] [ text "Take post-concert survey >>" ] ]
+                div [ class "sticky top-bar" ] 
+                [ span []
+                [text "Help us improve your experience! ",
+                span [] [ a 
+                [ href "https://docs.google.com/forms/d/1rVGMwOJXjhxxdW2Z8ftcEQ3Xjn5S8rC23cpn5rB90po/edit"] [ text "Take survey", img [src "assets/arrow-right.svg", width 12, height 12] []
+                ] ] ] ]
 
             else
                 div [] []
