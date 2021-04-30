@@ -19,25 +19,25 @@ self.addEventListener("install", function (e) {
 // Cache any new resources as they are fetched
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches
-      .match(event.request, { ignoreSearch: true })
-      .then(function (response) {
-        if (response) {
-          return response;
-        }
-        var requestToCache = event.request.clone();
-
-        return fetch(requestToCache).then(function (response) {
-          if (!response || response.status !== 200) {
-            return response;
-          }
-
+    (async function () {
+      try {
+        return await fetch(event.request).then(function (response) {
+          var requestToCache = event.request.clone();
           var responseToCache = response.clone();
           caches.open(cacheName).then(function (cache) {
             cache.put(requestToCache, responseToCache);
           });
           return response;
         });
-      })
+      } catch (err) {
+        return caches
+          .match(event.request, { ignoreSearch: true })
+          .then(function (response) {
+            if (response) {
+              return response;
+            }
+          });
+      }
+    })()
   );
 });
