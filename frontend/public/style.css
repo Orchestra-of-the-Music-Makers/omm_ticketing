@@ -161,6 +161,7 @@ h1 {
   text-align: middle;
   width: 100vw;
   overflow: auto;
+  z-index: 999;
 }
 
 .link-text {
@@ -194,4 +195,11 @@ h1 {
 .white {
   font-size: 0.8em;
   color: white;
+}
+
+#pdf-viewer {
+  overflow: auto;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }

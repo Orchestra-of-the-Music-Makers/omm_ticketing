@@ -6,7 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="/pdf.js"></script>
+    <script src="/pdf_viewer.js"></script>
     <script src="/booklet.js"></script>
     <link
       rel="stylesheet"
@@ -15,6 +16,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/pdf_viewer.css" />
   </head>
   <body>
     <pre id="elm"></pre>
@@ -30,85 +32,41 @@
 
       var urlParams = new URLSearchParams(window.location.search);
 
+      var flags = {displaySurveyBanner: urlParams.get('displayBanner') == '1'};
+      var app = Elm.Booklet.init({
+        node: document.getElementById("elm"),
+        flags: flags,
+      });
+
       // CONCERT DATA, change here for different pdfs
       var url = "assets/Mahler_Mobile.pdf";
       var pdfjsLib = window['pdfjs-dist/build/pdf'];
+      var pdfjsViewer = window['pdfjs-dist/web/pdf_viewer'];
 
       // The workerSrc property shall be specified.
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
-      pdfjsLib.getDocument(url).promise.then(pdf => {
-        let pageNum = 1;
-        var flags = {displaySurveyBanner: urlParams.get('displayBanner') == '1'};
-        var app = Elm.Booklet.init({
-          node: document.getElementById("elm"),
-          flags: flags,
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+
+      const container = document.getElementById('pdf-viewer');
+      const eventBus = new pdfjsViewer.EventBus();
+
+      // enable hyperlinks within PDF files.
+      const pdfLinkService = new pdfjsViewer.PDFLinkService({
+          eventBus,
+      });
+
+      const pdfViewer = new pdfjsViewer.PDFViewer({
+          container,
+          eventBus,
+          linkService: pdfLinkService,
+      });
+      pdfLinkService.setViewer(pdfViewer);
+
+      eventBus.on("pagesinit", function () {
+          pdfViewer.currentScaleValue = "page-width";
         });
-
-        function scaleCanvas(canvas, context, width, height) {
-          // assume the device pixel ratio is 1 if the browser doesn't specify it
-          const devicePixelRatio = window.devicePixelRatio || 1;
-
-          // determine the 'backing store ratio' of the canvas context
-          const backingStoreRatio = (
-            context.webkitBackingStorePixelRatio ||
-            context.mozBackingStorePixelRatio ||
-            context.msBackingStorePixelRatio ||
-            context.oBackingStorePixelRatio ||
-            context.backingStorePixelRatio || 1
-          );
-
-          // determine the actual ratio we want to draw at
-          const ratio = devicePixelRatio / backingStoreRatio;
-
-          if (devicePixelRatio !== backingStoreRatio) {
-            // set the 'real' canvas size to the higher width/height
-            canvas.width = width * ratio;
-            canvas.height = height * ratio;
-
-            // ...then scale it back down with CSS
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-          }
-          else {
-            // this is a normal 1:1 device; just scale it simply
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.width = '';
-            canvas.style.height = '';
-          }
-
-          // scale the drawing context so everything will work at the higher ratio
-          context.scale(ratio, ratio);
-        }
-
-        function renderPage(num) {
-          pdf.getPage(num).then(page => {
-
-            // calculate viewport
-            var desiredWidth = window.innerWidth;
-            var viewport = page.getViewport({ scale: 1 });
-            var scale = desiredWidth / viewport.width;
-            var scaledViewport = page.getViewport({ scale: scale });
-
-            // set canvas
-            var canvasId = 'pdf-viewer-' + num;
-            var canvas = document.createElement('canvas');
-            canvas.setAttribute("id", canvasId)
-            document.getElementById('pdf-viewer').appendChild(canvas);
-            var context = canvas.getContext('2d');
-            scaleCanvas(canvas, context, window.innerWidth, window.innerWidth*1.76);
-
-            var renderContext = {
-              canvasContext: context,
-              viewport: scaledViewport
-            };
-            page.render(renderContext);
-          });
-        }
-
-        for (var i = 1; i <= pdf.numPages; i++) {
-            renderPage(i);
-        }
+      pdfjsLib.getDocument(url).promise.then(pdf => {
+          pdfViewer.setDocument(pdf);
+          pdfLinkService.setDocument(pdf, null);
       });
     </script>
   </body>
