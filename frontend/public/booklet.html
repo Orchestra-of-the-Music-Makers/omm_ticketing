@@ -6,8 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <script src="/pdf.js"></script>
-    <script src="/pdf_viewer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js" integrity="sha512-SG4yH2eYtAR5eK4/VL0bhqOsIb6AZSWAJjHOCmfhcaqTkDviJFoar/VYdG96iY7ouGhKQpAg3CMJ22BrZvhOUA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf_viewer.js" integrity="sha512-O6aDht9IROQup2Ag1xf8F87x34eEzI5ZjNRvt8qx/itgTuAj2Bu41kZafLn/RAnH6fK7AfAFCrcAbjSqXUSQyQ==" crossorigin="anonymous"></script>
     <script src="/booklet.js"></script>
     <link
       rel="stylesheet"
@@ -16,7 +16,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/style.css" />
-    <link rel="stylesheet" href="/pdf_viewer.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf_viewer.min.css" integrity="sha512-LkJXOeBvZ1jlYJlfN1lYUDLk930TUOdRDz2sfCS5alKTbuSUyqn/E9r5QVH+asjOcLyAom8pvEZRcD/YG3J+Hg==" crossorigin="anonymous" />
   </head>
   <body>
     <pre id="elm"></pre>
@@ -44,7 +44,7 @@
       var pdfjsViewer = window['pdfjs-dist/web/pdf_viewer'];
 
       // The workerSrc property shall be specified.
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.worker.min.js';
 
       const container = document.getElementById('pdf-viewer');
       const eventBus = new pdfjsViewer.EventBus();
