@@ -88,7 +88,7 @@ view model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    msg of
+    case msg of
         -- [url] decide what to do
         OnUrlRequest (Browser.Internal url) ->
             ( model, Browser.Navigation.pushUrl model.navKey (Url.toString url) )
