@@ -76,6 +76,10 @@ view model =
 
                 Route.NotFound ->
                     notFoundPage
+
+                Route.AlbertTiuChopin ->
+                    notFoundPage
+
     in
     Browser.Document "OMM Ticketing"
         [ page
@@ -152,6 +156,9 @@ updateWithURL url model =
 
         Route.UsherTicketStatus s ->
             ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
+        
+        Route.AlbertTiuChopin ->
+            ( newModel, Browser.Navigation.load "https://ticketing.orchestra.sg/booklet" )
 
         Route.NotFound ->
             ( newModel, Cmd.none )
