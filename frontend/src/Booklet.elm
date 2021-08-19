@@ -46,12 +46,13 @@ update msg model =
         Tick newTime ->
             let
                 concertHasEnded =
-                    model.forceDisplayBanner
-                        || not
-                            ((Time.posixToMillis newTime < 1619859600000)
-                                || (Time.posixToMillis newTime > 1619938800000 && Time.posixToMillis newTime < 1619946000000)
-                                || (Time.posixToMillis newTime > 1619953200000 && Time.posixToMillis newTime < 1619960400000)
-                            )
+                    False
+                    -- model.forceDisplayBanner
+                        -- || not
+                            -- ((Time.posixToMillis newTime < 1619859600000)
+                                -- || (Time.posixToMillis newTime > 1619938800000 && Time.posixToMillis newTime < 1619946000000)
+                                -- || (Time.posixToMillis newTime > 1619953200000 && Time.posixToMillis newTime < 1619960400000)
+                            -- )
             in
             ( { model | time = newTime, displaySurveyBanner = concertHasEnded }
             , Cmd.none
