@@ -29,7 +29,7 @@ toString page =
             "/" ++ ticketID ++ "/status"
         
         AlbertTiuChopin ->
-            "https://ticketing.orchestra.sg/booklet"
+            "/albertplayschopin"
 
         NotFound ->
             "/notfound"

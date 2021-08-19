@@ -26,9 +26,12 @@ node_modules: package.json
 
 build-app: node_modules
 	npm install elm@latest-0.19.1
+	npm install uglify-js --global
 	node scripts/replace_with_env_vars.js
-	elm make src/Main.elm --output public/client.js
-	elm make src/Booklet.elm --output public/booklet.js
+	elm make src/Main.elm --optimize --output public/client.js
+	uglifyjs public/client.js --compress "pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe" | uglifyjs --mangle --output public/client.min.js
+	elm make src/Booklet.elm --optimize --output public/booklet.js
+	uglifyjs public/booklet.js --compress "pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe" | uglifyjs --mangle --output public/booklet.min.js
 .PHONY: build-app
 
 start-with-docker:
