@@ -79,7 +79,6 @@ view model =
 
                 Route.AlbertTiuChopin ->
                     notFoundPage
-
     in
     Browser.Document "OMM Ticketing"
         [ page

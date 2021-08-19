@@ -14,22 +14,22 @@ route : Parser (Page -> a) a
 route =
     oneOf
         [ map UsherTicketStatus (string </> s "status")
-        , map TicketStatus string
         , map AlbertTiuChopin (s "albertplayschopin")
+        , map TicketStatus string
         ]
 
 
 toString : Page -> String
 toString page =
     case page of
+        AlbertTiuChopin ->
+            "/albertplayschopin"
+
         TicketStatus ticketID ->
             "/" ++ ticketID
 
         UsherTicketStatus ticketID ->
             "/" ++ ticketID ++ "/status"
-        
-        AlbertTiuChopin ->
-            "/albertplayschopin"
 
         NotFound ->
             "/notfound"
