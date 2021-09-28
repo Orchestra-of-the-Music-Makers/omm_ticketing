@@ -6,7 +6,7 @@ import Url.Parser exposing ((</>), Parser, map, oneOf, s, string)
 type Page
     = TicketStatus String
     | UsherTicketStatus String
-    | AlbertTiuChopin
+    | MusicUnmasked
     | NotFound
 
 
@@ -14,7 +14,7 @@ route : Parser (Page -> a) a
 route =
     oneOf
         [ map UsherTicketStatus (string </> s "status")
-        , map AlbertTiuChopin (s "albertplayschopin")
+        , map MusicUnmasked (s "musicunmasked")
         , map TicketStatus string
         ]
 
@@ -22,8 +22,8 @@ route =
 toString : Page -> String
 toString page =
     case page of
-        AlbertTiuChopin ->
-            "/albertplayschopin"
+        MusicUnmasked ->
+            "/musicunmasked"
 
         TicketStatus ticketID ->
             "/" ++ ticketID
