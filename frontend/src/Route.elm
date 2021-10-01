@@ -7,6 +7,7 @@ type Page
     = TicketStatus String
     | UsherTicketStatus String
     | MusicUnmasked
+    | MusicUnmaskedDocs
     | NotFound
 
 
@@ -15,6 +16,7 @@ route =
     oneOf
         [ map UsherTicketStatus (string </> s "status")
         , map MusicUnmasked (s "musicunmasked")
+        , map MusicUnmaskedDocs (s "musicunmaskeddocs")
         , map TicketStatus string
         ]
 
@@ -24,6 +26,9 @@ toString page =
     case page of
         MusicUnmasked ->
             "/musicunmasked"
+        
+        MusicUnmaskedDocs ->
+            "/musicunmaskeddocs"
 
         TicketStatus ticketID ->
             "/" ++ ticketID
