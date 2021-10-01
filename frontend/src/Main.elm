@@ -161,7 +161,7 @@ updateWithURL url model =
             ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
         
         Route.MusicUnmasked ->
-            ( newModel, Browser.Navigation.load "https://ticketing.orchestra.sg/booklet" )
+            ( newModel, Browser.Navigation.load "https://drive.google.com/file/d/1IX6bjJVDjAnC0WL-G9lRTZg6vpueAENx/view?usp=drivesdk" )
         
         Route.MusicUnmaskedDocs ->
             ( newModel, Browser.Navigation.load "https://drive.google.com/file/d/1IX6bjJVDjAnC0WL-G9lRTZg6vpueAENx/view?usp=drivesdk" )
@@ -341,4 +341,4 @@ loadingPage =
 
 notFoundPage : Html.Html Msg
 notFoundPage =
-    h1 [] [ text "404 Not Found" ]
+    h1 [] [ text "Redirecting..." ]
