@@ -83,6 +83,9 @@ view model =
                 Route.MusicUnmaskedDocs ->
                     notFoundPage
 
+                Route.SymphonicFantasies ->
+                    notFoundPage
+
     in
     Browser.Document "OMM Ticketing"
         [ page
@@ -165,6 +168,9 @@ updateWithURL url model =
         
         Route.MusicUnmaskedDocs ->
             ( newModel, Browser.Navigation.load "https://drive.google.com/file/d/1IX6bjJVDjAnC0WL-G9lRTZg6vpueAENx/view?usp=drivesdk" )
+
+        Route.SymphonicFantasies ->
+            ( newModel, Browser.Navigation.load "https://drive.google.com/file/d/1hWI9EhvMDeTLVbE0EccgXr7P8SkuuHzg/view?usp=drivesdk" )
 
         Route.NotFound ->
             ( newModel, Cmd.none )

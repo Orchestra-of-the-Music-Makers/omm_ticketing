@@ -8,6 +8,7 @@ type Page
     | UsherTicketStatus String
     | MusicUnmasked
     | MusicUnmaskedDocs
+    | SymphonicFantasies
     | NotFound
 
 
@@ -17,6 +18,7 @@ route =
         [ map UsherTicketStatus (string </> s "status")
         , map MusicUnmasked (s "musicunmasked")
         , map MusicUnmaskedDocs (s "musicunmaskeddocs")
+        , map SymphonicFantasies (s "symphonicfantasies")
         , map TicketStatus string
         ]
 
@@ -29,6 +31,9 @@ toString page =
         
         MusicUnmaskedDocs ->
             "/musicunmaskeddocs"
+
+        SymphonicFantasies ->
+            "/symphonicfantasies"
 
         TicketStatus ticketID ->
             "/" ++ ticketID
