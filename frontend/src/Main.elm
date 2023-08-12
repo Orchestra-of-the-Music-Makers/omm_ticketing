@@ -68,11 +68,8 @@ view model =
     let
         page =
             case model.currentPage of
-                Route.TicketStatus _ ->
-                    ticketStatusPage model.bookletLink model.surveyLink model.tncLink model.currentTicket
-
-                Route.UsherTicketStatus _ ->
-                    usherTicketStatusPage model.zone model.currentTicket
+                Route.TicketData _ ->
+                    ticketDataPage model.tncLink model.currentTicket
 
                 Route.NotFound ->
                     notFoundPage
@@ -111,28 +108,14 @@ update msg model =
         OnUrlChange url ->
             updateWithURL url model
 
-        GotTicketStatus (Result.Ok result) ->
+        GotTicketData (Result.Ok result) ->
             ( { model | currentTicket = RemoteData.Success result }, Cmd.none )
 
-        GotTicketStatus (Result.Err error) ->
+        GotTicketData (Result.Err error) ->
             ( { model | currentTicket = RemoteData.Failure error }, Cmd.none )
 
         OnPasswordChanged s ->
             ( { model | password = s }, Cmd.none )
-
-        OnMarkAsScannedSubmitted ticketID ->
-            ( model, API.markTicketAsScanned model.lambdaUrl model.apiKey ticketID model.password )
-
-        TicketMarkedAsScanned ticketID (Result.Ok result) ->
-            case result.status of
-                "success" ->
-                    ( model, Browser.Navigation.pushUrl model.navKey (Route.toString (Route.TicketStatus ticketID)) )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        TicketMarkedAsScanned _ (Result.Err error) ->
-            ( model, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -157,11 +140,8 @@ updateWithURL url model =
             { model | currentPage = currentPage }
     in
     case currentPage of
-        Route.TicketStatus s ->
-            ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
-
-        Route.UsherTicketStatus s ->
-            ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketStatus newModel.lambdaUrl newModel.apiKey s )
+        Route.TicketData s ->
+            ( { newModel | currentTicket = RemoteData.Loading }, API.getTicketData newModel.lambdaUrl newModel.apiKey s )
         
         Route.MusicUnmasked ->
             ( newModel, Browser.Navigation.load "https://drive.google.com/file/d/1IX6bjJVDjAnC0WL-G9lRTZg6vpueAENx/view?usp=drivesdk" )
@@ -175,19 +155,26 @@ updateWithURL url model =
         Route.NotFound ->
             ( newModel, Cmd.none )
 
-
-ticketStatusPage : String -> String -> String -> RemoteData.WebData TicketStatus -> Html.Html Msg
-ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
+ticketDataPage : String -> RemoteData.WebData TicketData -> Html.Html Msg
+ticketDataPage tncLink remoteEvent =
     let
         card =
-            case remoteTicket of
+            case remoteEvent of
                 RemoteData.Success ticket ->
                     let
-                        ticketLink =
-                            "https://ticketing.orchestra.sg/" ++ ticket.ticketID ++ "/status"
-
                         truncatedTicketID =
                             String.left 6 ticket.ticketID
+
+                        seatCard =
+                            case ticket.seatID of
+                                Nothing ->
+                                    div [ class "col-3" ] []
+                                _ ->
+                                    div [ class "col-3 seat-no" ] [ div [ class "seat-content text-center" ]
+                                        [ span [ class "clearfix" ] [ text "SEAT" ]
+                                        , span [ class "clearfix", id "no" ] [ text "ticket.seatID" ]
+                                        , span [ class "ticketid" ] [ text truncatedTicketID ]
+                                        ]]
 
                         qrCode message =
                             QRCode.fromStringWith QRCode.Quartile message
@@ -203,35 +190,28 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
                     div [ class "card omm-card" ]
                         [ div [ class "card-text" ]
                             [ div [ class "row ml-3" ]
-                                [ div [ class "col-3 seat-no" ]
-                                    [ div [ class "seat-content text-center" ]
-                                        [ span [ class "clearfix" ] [ text "SEAT" ]
-                                        , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
-                                        , span [ class "ticketid" ] [ text truncatedTicketID ]
-                                        ]
-                                    ]
+                                [ seatCard
                                 , div [ class "col-9" ]
                                     [ div [ class "row" ]
                                         [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
                                         ]
                                     , div [ class "row" ]
-                                        [ div [ class "col-12" ] [ lazy qrCode ticketLink ] ]
+                                        [ div [ class "col-12" ] [ lazy qrCode ticket.ticketID ] ]
                                     ]
                                 ]
                             , div [ class "row pr-3" ]
                                 [ div [ class "col-10 offset-2 text-right" ]
                                     [ p [ class "text-light grey mb-4 font-italic" ] [ text "Please show this to the usher to enter the hall." ]
-                                    , h1 [ class "" ] [ text "OMM Restarts!" ]
-                                    , p [ class "details" ] [ text ("11 Oct 2020, " ++ ticket.startTime) ]
-                                    , p [ class "details mb-4" ] [ text "Singapore Conference Hall" ]
-                                    , a [ href bookletLink, target "_blank" ] [ button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ] ]
-                                    , a [ href surveyLink, target "_blank" ] [ button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ] ]
+                                    , h1 [ class "" ] [ text ticket.title ]
+                                    , p [ class "details" ] [ text ticket.date ]
+                                    , p [ class "details mb-4" ] [ text ticket.venue ]
+                                    , a [ href ticket.bookletLink, target "_blank" ] [ button [ class "btn btn-primary mb-2" ] [ text "PROGRAMME BOOKLET" ] ]
+                                    , a [ href ticket.surveyLink, target "_blank" ] [ button [ class "btn btn-primary mb-4" ] [ text "POST-CONCERT SURVEY" ] ]
                                     , a [ href tncLink, target "_blank" ] [ p [ class "text-muted grey mb-4" ] [ text "Terms & Conditions" ] ]
                                     ]
                                 ]
                             ]
                         ]
-
                 RemoteData.Failure _ ->
                     failedFetchingPage
 
@@ -243,95 +223,6 @@ ticketStatusPage bookletLink surveyLink tncLink remoteTicket =
             [ div [ class "min-vh-20" ] [] ]
         , card
         ]
-
-
-usherTicketStatusPage : Time.Zone -> RemoteData.WebData TicketStatus -> Html.Html Msg
-usherTicketStatusPage zone remoteTicket =
-    let
-        card =
-            case remoteTicket of
-                RemoteData.Success ticket ->
-                    case ticket.scannedAt of
-                        Just posixTime ->
-                            let
-                                ( date, month, year ) =
-                                    ( String.fromInt (Time.toDay zone posixTime)
-                                    , Types.toMonthStr (Time.toMonth zone posixTime)
-                                    , String.fromInt (Time.toYear zone posixTime)
-                                    )
-
-                                ( hour, minute, second ) =
-                                    ( String.padLeft 2 '0' (String.fromInt (Time.toHour zone posixTime))
-                                    , String.padLeft 2 '0' (String.fromInt (Time.toMinute zone posixTime))
-                                    , String.padLeft 2 '0' (String.fromInt (Time.toSecond zone posixTime))
-                                    )
-                            in
-                            div [ class "card omm-card usher-card" ]
-                                [ div [ class "card-text" ]
-                                    [ div [ class "row ml-3" ]
-                                        [ div [ class "col-3 seat-no" ]
-                                            [ div [ class "seat-content text-center" ]
-                                                [ span [ class "clearfix" ] [ text "SEAT" ]
-                                                , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
-                                                , span [ class "ticketid" ] [ text ticket.ticketID ]
-                                                ]
-                                            ]
-                                        , div [ class "col-9" ]
-                                            [ div [ class "row" ]
-                                                [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
-                                                ]
-                                            ]
-                                        ]
-                                    , div [ class "row pr-3" ]
-                                        [ div [ class "col-10 offset-2 text-right" ]
-                                            [ h1 [ class "" ] [ text "Ticket was scanned at" ]
-                                            , p [ class "details mb-4" ] [ text (date ++ "-" ++ month ++ "-" ++ year ++ ", " ++ hour ++ ":" ++ minute ++ ":" ++ second) ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-
-                        Nothing ->
-                            div [ class "card omm-card usher-card" ]
-                                [ div [ class "card-text" ]
-                                    [ div [ class "row ml-3" ]
-                                        [ div [ class "col-3 seat-no" ]
-                                            [ div [ class "seat-content text-center" ]
-                                                [ span [ class "clearfix" ] [ text "SEAT" ]
-                                                , span [ class "clearfix", id "no" ] [ text ticket.seatID ]
-                                                , span [ class "ticketid" ] [ text ticket.ticketID ]
-                                                ]
-                                            ]
-                                        , div [ class "col-9" ]
-                                            [ div [ class "row" ]
-                                                [ div [ class "col-12 text-right mt-4 mb-2" ] [ img [ src "/assets/OMM-White.png", class "p-3 omm-logo" ] [] ]
-                                                ]
-                                            ]
-                                        ]
-                                    , div [ class "row pr-3" ]
-                                        [ div [ class "col-10 offset-2 text-right" ]
-                                            [ h1 [ class "" ] [ text "Ticket not scanned yet" ]
-                                            , form [ onSubmit (OnMarkAsScannedSubmitted ticket.ticketID) ]
-                                                [ div [ class "form-group" ]
-                                                    [ input [ type_ "password", class "form-control", onInput OnPasswordChanged, placeholder "password" ] []
-                                                    ]
-                                                , button [ class "btn btn-primary" ] [ text "Mark as scanned" ]
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-
-                RemoteData.Failure _ ->
-                    failedFetchingPage
-
-                _ ->
-                    loadingPage
-    in
-    div [ class "container-fluid" ]
-        [ card
-        ]
-
 
 failedFetchingPage : Html.Html Msg
 failedFetchingPage =

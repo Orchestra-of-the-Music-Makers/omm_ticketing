@@ -16,7 +16,7 @@ type alias Model =
     , currentPage : Route.Page
     , lambdaUrl : String
     , navKey : Browser.Navigation.Key
-    , currentTicket : RemoteData.WebData TicketStatus
+    , currentTicket : RemoteData.WebData TicketData
     , password : String
     , zone : Time.Zone
     , tncLink : String
@@ -28,10 +28,8 @@ type alias Model =
 type Msg
     = OnUrlRequest Browser.UrlRequest
     | OnUrlChange Url.Url
-    | GotTicketStatus (Result.Result Http.Error TicketStatus)
+    | GotTicketData (Result.Result Http.Error TicketData)
     | OnPasswordChanged String
-    | OnMarkAsScannedSubmitted String
-    | TicketMarkedAsScanned String (Result.Result Http.Error MarkTicketAsScannedResponse)
     | AdjustTimeZone Time.Zone
 
 
@@ -51,15 +49,26 @@ type alias TicketStatus =
     , startTime : String
     }
 
+type alias TicketData =
+    { title : String
+    , venue : String
+    , ticketID : String
+    , date : String
+    , seatID : Maybe String
+    , surveyLink : String
+    , bookletLink : String
+    }
 
-ticketStatusDecoder : Json.Decode.Decoder TicketStatus
-ticketStatusDecoder =
-    Json.Decode.succeed TicketStatus
-        |> Json.Decode.Pipeline.required "seat_id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "ticket_id" Json.Decode.string
-        |> Json.Decode.Pipeline.optional "scanned_at" decodeTimePosix Nothing
-        |> Json.Decode.Pipeline.required "start_time" Json.Decode.string
-
+ticketDataDecoder : Json.Decode.Decoder TicketData
+ticketDataDecoder =
+    Json.Decode.succeed TicketData
+        |> Json.Decode.Pipeline.required "title" Json.Decode.string
+        |> Json.Decode.Pipeline.required "venue" Json.Decode.string
+        |> Json.Decode.Pipeline.required "pk" Json.Decode.string
+        |> Json.Decode.Pipeline.required "date" Json.Decode.string
+        |> Json.Decode.Pipeline.optional "seat" (Json.Decode.map Just Json.Decode.string) Nothing
+        |> Json.Decode.Pipeline.required "survey_link" Json.Decode.string
+        |> Json.Decode.Pipeline.required "booklet_link" Json.Decode.string
 
 emptyTicketStatus : TicketStatus
 emptyTicketStatus =

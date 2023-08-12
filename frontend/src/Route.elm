@@ -4,8 +4,7 @@ import Url.Parser exposing ((</>), Parser, map, oneOf, s, string)
 
 
 type Page
-    = TicketStatus String
-    | UsherTicketStatus String
+    = TicketData String
     | MusicUnmasked
     | MusicUnmaskedDocs
     | SymphonicFantasies
@@ -15,11 +14,10 @@ type Page
 route : Parser (Page -> a) a
 route =
     oneOf
-        [ map UsherTicketStatus (string </> s "status")
-        , map MusicUnmasked (s "musicunmasked")
+        [ map MusicUnmasked (s "musicunmasked")
         , map MusicUnmaskedDocs (s "musicunmaskeddocs")
         , map SymphonicFantasies (s "symphonicfantasies")
-        , map TicketStatus string
+        , map TicketData string
         ]
 
 
@@ -35,11 +33,8 @@ toString page =
         SymphonicFantasies ->
             "/symphonicfantasies"
 
-        TicketStatus ticketID ->
+        TicketData ticketID ->
             "/" ++ ticketID
-
-        UsherTicketStatus ticketID ->
-            "/" ++ ticketID ++ "/status"
 
         NotFound ->
             "/notfound"
