@@ -7,7 +7,7 @@ import os
 
 print("Loading function")
 
-dynamo = boto3.resource("dynamodb").Table("ticketing-table")
+dynamo = boto3.resource("dynamodb").Table("ticketing")
 SECRET_KEY = os.environ["SECRET_KEY"]
 ALLOWED_ORIGINS = os.environ["ALLOWED_ORIGINS"]
 
@@ -39,13 +39,21 @@ def lambda_handler(event, context):
     ticket_id = path[0]
     action = path[1]
 
-    response = dynamo.query(KeyConditionExpression=Key("ticket_id").eq(ticket_id))
+    response = dynamo.query(KeyConditionExpression=Key("pk").eq(ticket_id))
 
     if response["Count"] == 0:
         return respond(ValueError(f"Invalid ticket_id {ticket_id}"))
 
     ticket = response["Items"][0]
     ticket_scanned_at = ticket.get("scanned_at")
+
+    # Query dynamo DB for event based on ticket ID
+    event_id = ticket.get("sk").split("-")[1]
+    event_response = dynamo.query(KeyConditionExpression=Key("pk").eq("example_event_name"))
+    if event_response["Count"] == 0:
+        return respond(ValueError(f"Invalid event_id {event_id}"))
+
+    event = event_response["Items"][0]
 
     # POST /<ticket_id>/submit
     if verb == "POST" and action == "submit":
@@ -67,8 +75,19 @@ def lambda_handler(event, context):
         )
         return respond(None, {"status": "success"})
 
-    # POST /<ticket_id>/status
+    # GET /<ticket_id>/status
     elif verb == "GET" and action == "status":
+        print(f"GET_STATUS: {ticket_id}")
+        dynamo.update_item(
+            Key={"ticket_id": ticket_id},
+            UpdateExpression="add scanned_count :val",
+            ExpressionAttributeValues={":val": 1},
+        )
         return respond(None, ticket)
+
+    # GET /<ticket_id>/data
+    elif verb == "GET" and action == "data":
+        return respond(None, {**event, **ticket})
+
 
     return respond(ValueError(f"Unsupported action"))
